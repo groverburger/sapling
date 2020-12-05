@@ -36,6 +36,7 @@ function Reset()
     SelectionList = []
     ShouldScreenRefresh = true
     MouseHoveringNode = null
+    CurrentContextMenu = null
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -139,6 +140,32 @@ function ModifierKey()
     return keyIsDown(17) || keyIsDown(18) || keyIsDown(224)
 }
 
+function mousePressed()
+{
+    let amount = 0
+    for (const index in SelectionList)
+    {
+        amount += 1
+        SelectionList[index].mousePressed()
+    }
+
+    if (CurrentContextMenu)
+        CurrentContextMenu.mousePressed()
+
+    if (amount > 0 && mouseButton === RIGHT)
+    {
+        CurrentContextMenu = new ContextMenu(mouseX, mouseY, [
+            ["red", function () { console.log("red") }],
+            ["blue", function () { console.log("blue") }],
+            ["green", function () { console.log("green") }],
+            ["more", [
+                ["magenta", function () { console.log("magenta") }],
+                ["orange", function () { console.log("orange") }],
+            ]],
+        ])
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // main loops
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -219,6 +246,9 @@ function Update()
         ScreenRefresh()
     }
 
+    if (CurrentContextMenu)
+        CurrentContextMenu.update()
+
     PreviousMouseButton = CurrentMouseButton
 }
 
@@ -247,10 +277,13 @@ function Draw()
 
     pop()
 
-    stroke(0)
+    if (CurrentContextMenu)
+        CurrentContextMenu.draw()
+
+    noStroke()
     fill(0)
     textAlign(LEFT)
-    //text(GetSpatialString(Mouse.x,Mouse.y), 50,50)
+    text(Math.floor(Mouse.x) + ", " + Math.floor(Mouse.y), 50,50)
     //text(str(MouseHoveringNode), 50,100)
     let rot = RefreshCount*Math.PI*0.1
     arc(windowWidth-60,50, 30,30, rot,rot+Math.PI*1.5)

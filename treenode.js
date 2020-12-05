@@ -154,7 +154,11 @@ class TreeNode
     {
         if (keyCode === 8)
         {
-            this.text = this.text.slice(0,-1)
+            if (ModifierKey())
+                this.text = ""
+            else
+                this.text = this.text.slice(0,-1)
+
             this.update()
         }
 
@@ -169,6 +173,8 @@ class TreeNode
             this.delete()
         }
     }
+
+    mousePressed() { }
 
     draw(drawSelected)
     {
@@ -213,7 +219,7 @@ class TreeNode
             }
         }
 
-        stroke(0)
+        noStroke()
         fill(0)
         strokeWeight(1)
         textAlign(CENTER)
