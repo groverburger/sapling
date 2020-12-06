@@ -19,7 +19,7 @@ function Reset()
 {
     CurrentNodeID = 0
     Trees = []
-    let tree = new TreeNode(0,-100)
+    let tree = new TreeNode(0,0, "root")
     AddToSpatialHash(tree.x,tree.y, tree)
     Trees.push(tree)
     /*
@@ -29,7 +29,7 @@ function Reset()
     }
     */
 
-    Camera = {x:0, y:0, zoom:1}
+    Camera = {x:0, y:-50, zoom:1}
     CurrentMouseButton = -1
     Mouse = {x:0, y:0}
     PreviousMouseButton = -1
@@ -37,6 +37,10 @@ function Reset()
     ShouldScreenRefresh = true
     MouseHoveringNode = null
     CurrentContextMenu = null
+    CurrentRenderTarget = null
+    FontSize = 18
+    CurrentlyActiveArrows = []
+    textSize(FontSize)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -142,28 +146,17 @@ function ModifierKey()
 
 function mousePressed()
 {
+    /*
     let amount = 0
     for (const index in SelectionList)
     {
         amount += 1
         SelectionList[index].mousePressed()
     }
+    */
 
     if (CurrentContextMenu)
         CurrentContextMenu.mousePressed()
-
-    if (amount > 0 && mouseButton === RIGHT)
-    {
-        CurrentContextMenu = new ContextMenu(mouseX, mouseY, [
-            ["red", function () { console.log("red") }],
-            ["blue", function () { console.log("blue") }],
-            ["green", function () { console.log("green") }],
-            ["more", [
-                ["magenta", function () { console.log("magenta") }],
-                ["orange", function () { console.log("orange") }],
-            ]],
-        ])
-    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -182,6 +175,12 @@ function Update()
         CurrentMouseButton = mouseButton
     else
         CurrentMouseButton = -1
+
+    if (CurrentContextMenu)
+    {
+        CurrentContextMenu.update()
+        return
+    }
 
     UpdateCamera()
 
@@ -213,6 +212,7 @@ function Update()
 
     // look at all the nodes near spatially to the mouse cursor
     // check if hovering over them
+    let lastMouseHoveringNode = MouseHoveringNode
     for (let x=-1; x<=1; x++)
     {
         for (let y=-1; y<=1; y++)
@@ -223,7 +223,6 @@ function Update()
                 for (let i=0; i<spatial.length; i++)
                 {
                     let node = spatial[i]
-                    let lastMouseHoveringNode = MouseHoveringNode
                     if (node.isHovered())
                     {
                         MouseHoveringNode = node
@@ -233,6 +232,38 @@ function Update()
                         if (CurrentMouseButton === LEFT)
                         {
                             SelectionList[node.id] = node
+
+                            for (let a=0; a<CurrentlyActiveArrows.length; a++)
+                                CurrentlyActiveArrows[a].anchor(node)
+                        }
+
+                        if (CurrentMouseButton === RIGHT && PreviousMouseButton === -1)
+                        {
+                            CurrentContextMenu = new ContextMenu(mouseX, mouseY, [
+                                ["Add Subnode", [
+                                    ["Single", function () { node.addChild(1) }],
+                                    ["Double", function () { node.addChild(2) }],
+                                    ["Triple", function () { node.addChild(3) }],
+                                    ["Quadruple", function () { node.addChild(4) }],
+                                    ["Quintuple", function () { node.addChild(5) }],
+                                ]],
+                                ["Change Color", [
+                                    ["Highlighter", function () { } ],
+                                    ["Blue", function () { } ],
+                                    ["Red", function () { } ],
+                                    ["Green", function () { } ],
+                                    ["Dark", function () { } ],
+                                ]],
+                                ["Arrows", [
+                                    ["Add", function () {
+                                        let arrow = new Arrow(node)
+                                        node.arrows.push(arrow)
+                                        CurrentlyActiveArrows.push(arrow)
+                                    }],
+                                    ["Remove All", function () { node.arrows = [] }],
+                                ]],
+                                ["Delete", function () { node.delete() }],
+                            ])
                         }
                     }
                 }
@@ -240,14 +271,22 @@ function Update()
         }
     }
 
+    let i = 0
+    while (i < CurrentlyActiveArrows.length)
+    {
+        CurrentlyActiveArrows[i].update()
+        if (CurrentlyActiveArrows[i].to)
+            CurrentlyActiveArrows.splice(i,1)
+        else
+            i += 1
+    }
+
+    // if i was hovering a node but i'm not anymore, refresh the screen
     if (MouseHoveringNode && !MouseHoveringNode.isHovered())
     {
         MouseHoveringNode = null
         ScreenRefresh()
     }
-
-    if (CurrentContextMenu)
-        CurrentContextMenu.update()
 
     PreviousMouseButton = CurrentMouseButton
 }
@@ -284,7 +323,6 @@ function Draw()
     fill(0)
     textAlign(LEFT)
     text(Math.floor(Mouse.x) + ", " + Math.floor(Mouse.y), 50,50)
-    //text(str(MouseHoveringNode), 50,100)
     let rot = RefreshCount*Math.PI*0.1
     arc(windowWidth-60,50, 30,30, rot,rot+Math.PI*1.5)
 }
@@ -301,6 +339,20 @@ function UpdateCamera()
 
         if (Camera.x != lastCameraX || Camera.y != lastCameraY)
             ScreenRefresh()
+    }
+}
+
+function GetCurrentRenderTarget()
+{
+    return CurrentRenderTarget
+}
+
+function SetCurrentRenderTarget(target)
+{
+    CurrentRenderTarget = target
+    if (target)
+    {
+        target.textSize(FontSize)
     }
 }
 

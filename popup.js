@@ -7,7 +7,7 @@ class ContextMenu
         this.data = data
         this.x = x
         this.y = y
-        this.horizontalMargin = 25
+        this.horizontalMargin = 40
         this.verticalMargin = 0
         this.id = ContextID
         ContextID += 1
@@ -36,7 +36,7 @@ class ContextMenu
 
     textHeight()
     {
-        return 20
+        return FontSize*1.25
     }
 
     update()
@@ -93,17 +93,17 @@ class ContextMenu
             rect(this.x,this.y+this.verticalMargin+(index)*this.textHeight(), this.width,this.textHeight())
 
         fill(255)
-        stroke(255)
         noStroke()
         for (let i=0; i<this.data.length; i++)
         {
-            text(this.data[i][0], this.x + this.horizontalMargin, this.y + this.verticalMargin*1.5 + this.textHeight()*i + 13)
-            /*
-            if type(v[2]) == "table" then
-                let dx, dy = this.x + this.width - 16, this.y + this.verticalMargin*1.5 + this.textHeight()*(i-0.6)
-                LG.polygon("fill", dx,dy-6, dx+12,dy, dx,dy+6)
-            end
-            */
+            text(this.data[i][0], this.x + this.horizontalMargin, this.y + this.verticalMargin*1.5 + this.textHeight()*i + FontSize*0.9)
+
+            if (typeof(this.data[i][1]) == "object")
+            {
+                let dx = this.x + this.width - 16
+                let dy = this.y + this.verticalMargin*1.5 + this.textHeight()*(i+0.5)
+                triangle(dx,dy-6, dx+12,dy, dx,dy+6)
+            }
         }
 
         for (const i in this.subcontexts)
@@ -111,9 +111,6 @@ class ContextMenu
             if (this.subcontexts[i])
                 this.subcontexts[i].draw()
         }
-
-        if (this.isSubcontext)
-            console.log("subcontext", this.x, this.y)
     }
 
     mousePressed()

@@ -10,16 +10,17 @@ class TreeNode
         this.y = y
         this.lastX = x
         this.lastY = y
-        this.text = text || "test"
+        this.text = text || ""
         this.id = CurrentNodeID
-        CurrentNodeID += 1
         this.children = []
         this.childAnchorPoints = []
-
+        this.arrows = []
+        this.spaces = 0
         this.width = 0
         this.childWidth = 0
         this.parent = null
         this.dead = false
+        CurrentNodeID += 1
     }
 
     isHovered()
@@ -32,13 +33,16 @@ class TreeNode
         return SelectionList[this.id] === this
     }
 
-    addChild()
+    addChild(times)
     {
-        let child = new TreeNode(this.x,this.y)
-        this.children.push(child)
         this.widthChanged = true
-        child.parent = this
-        child.recalculate()
+        for (let i=0; i<(times || 1); i++)
+        {
+            let child = new TreeNode(this.x,this.y)
+            this.children.push(child)
+            child.parent = this
+            child.recalculate()
+        }
     }
 
     delete()
@@ -70,12 +74,6 @@ class TreeNode
         }
     }
 
-    update()
-    {
-        this.recalculate()
-        ScreenRefresh()
-    }
-
     recalculate()
     {
         let total = 0
@@ -92,7 +90,7 @@ class TreeNode
             this.childAnchorPoints[i] = this.childAnchorPoints[i] - total/2
         }
 
-        this.width = Math.max(total, this.textWidth()+2)
+        this.width = Math.max(total, this.textWidth()+4)
 
         // update child positions
         for (let i=0; i<this.children.length; i++)
@@ -101,7 +99,7 @@ class TreeNode
             child.lastX = child.x
             child.lastY = child.y
             child.xOff = this.childAnchorPoints[i]
-            child.yOff = 30
+            child.yOff = this.lineHeight()
             child.xStart = this.x
             child.yStart = this.y
             child.x = child.xOff + child.xStart
@@ -113,6 +111,8 @@ class TreeNode
 
         if (this.parent)
             this.parent.recalculate()
+
+        ScreenRefresh()
     }
 
     updateRelativePosition()
@@ -136,18 +136,37 @@ class TreeNode
 
     textWidth()
     {
-        return Math.max(textWidth(this.text) + 6, 30)
+        return Math.max(textWidth(this.text) + 10, 45)
     }
 
     textHeight()
     {
-        return 20
+        return FontSize+6
+    }
+
+    lineHeight()
+    {
+        return 45
+    }
+
+    totalHeight()
+    {
+        let biggestHeight = 0
+        for (let i=0; i<this.children.length; i++)
+        {
+            biggestHeight = Math.max(biggestHeight, this.children[i].totalHeight() + this.lineHeight())
+        }
+
+        return biggestHeight
     }
 
     keyTyped(text)
     {
         this.text = this.text + text
-        this.update()
+        this.recalculate()
+
+        if (text == " ")
+            this.spaces += 1
     }
 
     keyPressed(keyCode)
@@ -159,28 +178,77 @@ class TreeNode
             else
                 this.text = this.text.slice(0,-1)
 
-            this.update()
+            this.countSpaces()
+            this.recalculate()
         }
 
         if (keyCode === 65 && ModifierKey())
         {
             this.addChild()
-            this.update()
+            this.recalculate()
         }
 
         if (keyCode === 46)
         {
             this.delete()
         }
+
+        if (keyCode === 80 && ModifierKey())
+        {
+            this.takePicture()
+        }
+    }
+
+    countSpaces()
+    {
+        this.spaces = 0
+        for (let i=0; i<this.text.length; i++)
+        {
+            if (this.text[i] == " ")
+            {
+                this.spaces += 1
+            }
+        }
     }
 
     mousePressed() { }
 
-    draw(drawSelected)
+    draw(drawSelected, xoff,yoff)
     {
         // don't draw selected nodes in the normal draw pass
         // so that their halos can overlap other nodes
         if (this.isSelected() && !drawSelected) { return }
+
+        // override the rendering functions
+        // when a render target is specified
+        let _fill = fill
+        let _noFill = noFill
+        let _noStroke = noStroke
+        let _stroke = stroke
+        let _strokeWeight = strokeWeight
+        let _line = line
+        let _rect = rect
+        let _text = text
+        let _textAlign = textAlign
+        let renderTarget = GetCurrentRenderTarget()
+        if (renderTarget)
+        {
+            _fill = renderTarget.fill
+            _noFill = renderTarget.noFill
+            _noStroke = renderTarget.noStroke
+            _stroke = renderTarget.stroke
+            _strokeWeight = renderTarget.strokeWeight
+            _line = renderTarget.line
+            _rect = renderTarget.rect
+            _text = renderTarget.text
+            _textAlign = renderTarget.textAlign
+        }
+
+        // can be shifted around when rendering to an image
+        xoff = xoff || 0
+        yoff = yoff || 0
+        let dx = this.x + xoff
+        let dy = this.y + yoff
 
         this.updateRelativePosition()
 
@@ -188,41 +256,77 @@ class TreeNode
         for (const key in this.children)
         {
             let child = this.children[key]
-            stroke(0.15*255)
-            strokeWeight(1)
-            line(this.x,this.y + this.textHeight()/2, child.x,child.y - child.textHeight()/2)
-            child.draw()
+            //_stroke(0.15*255)
+            _stroke(0)
+            _strokeWeight(2)
+            if (child.spaces > 0)
+            {
+                _line(child.x + xoff - child.textWidth()/2,child.y + yoff - child.textHeight()/2, dx,dy + this.textHeight()/2)
+                _line(child.x + xoff + child.textWidth()/2,child.y + yoff - child.textHeight()/2, dx,dy + this.textHeight()/2)
+                _line(child.x + xoff + child.textWidth()/2,child.y + yoff - child.textHeight()/2, child.x + xoff - child.textWidth()/2, child.y + yoff - child.textHeight()/2)
+            }
+            else
+            {
+                _line(dx,dy + this.textHeight()/2, child.x + xoff,child.y + yoff - child.textHeight()/2)
+            }
+
+            child.draw(false, xoff,yoff)
         }
 
         // draw the actual node
-        noStroke()
-        fill(255,255,255)
-        rect(this.x - this.textWidth()/2,this.y - this.textHeight()/2, this.textWidth(),this.textHeight())
+        _noStroke()
+        _fill(0.9*255)
+        if (this.text.length > 0)
+            _fill(0,0,0,0)
+        _rect(dx - this.textWidth()/2,dy - this.textHeight()/2, this.textWidth(),this.textHeight())
 
-        // draw the selection halos
-        if (this.isSelected())
+        // draw the selection halos only if not being rendered to an image
+        if (!renderTarget)
         {
-            stroke(0,0,0)
-            strokeWeight(2)
-            noFill()
-            let rad = 4
-            rect(this.x - this.textWidth()/2 - rad,this.y - this.textHeight()/2 - rad, this.textWidth() + rad*2, this.textHeight() + rad*2)
-        }
-        else
-        {
-            if (this.isHovered())
+            if (this.isSelected())
             {
-                stroke(0,0,0)
-                strokeWeight(2)
-                noFill()
-                rect(this.x - this.textWidth()/2,this.y - this.textHeight()/2, this.textWidth(),this.textHeight())
+                _stroke(0,0,0)
+                _strokeWeight(4)
+                _noFill()
+                let rad = 6
+                _rect(dx - this.textWidth()/2 - rad,dy - this.textHeight()/2 - rad, this.textWidth() + rad*2, this.textHeight() + rad*2)
+            }
+            else
+            {
+                if (this.isHovered())
+                {
+                    _stroke(0,0,0)
+                    _strokeWeight(4)
+                    _noFill()
+                    _rect(dx - this.textWidth()/2,dy - this.textHeight()/2, this.textWidth(),this.textHeight())
+                }
             }
         }
 
-        noStroke()
-        fill(0)
-        strokeWeight(1)
-        textAlign(CENTER)
-        text(this.text, this.x,this.y + 4)
+        _noStroke()
+        _fill(0)
+        _strokeWeight(1)
+        _textAlign(CENTER)
+        _text(this.text, dx,dy + 6)
+
+        let i = 0
+        while (i < this.arrows.length)
+        {
+            if (this.arrows[i].from === this)
+                this.arrows[i].draw()
+            else
+                this.arrows.splice(i,1)
+
+            i += 1
+        }
+    }
+
+    takePicture()
+    {
+        let pic = createGraphics(this.width, this.totalHeight() + this.textHeight())
+        SetCurrentRenderTarget(pic)
+        this.draw(true, this.width/2, this.textHeight()/2)
+        SetCurrentRenderTarget(null)
+        save(pic, "treeImage.png")
     }
 }
