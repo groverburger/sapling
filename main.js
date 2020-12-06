@@ -1,5 +1,4 @@
 const SpatialSize = 200
-let SpatialHash = {}
 
 function setup()
 {
@@ -18,17 +17,11 @@ function ScreenRefresh()
 function Reset()
 {
     CurrentNodeID = 0
+    SpatialHash = {}
     Trees = []
     let tree = new TreeNode(0,0, "root")
     AddToSpatialHash(tree.x,tree.y, tree)
     Trees.push(tree)
-    /*
-    for (let i=0; i<100; i++)
-    {
-        tree.addChild()
-    }
-    */
-
     Camera = {x:0, y:-50, zoom:1}
     CurrentMouseButton = -1
     Mouse = {x:0, y:0}
@@ -38,6 +31,7 @@ function Reset()
     MouseHoveringNode = null
     CurrentContextMenu = null
     CurrentRenderTarget = null
+    TreeRepresentation = null
     FontSize = 18
     CurrentlyActiveArrows = []
     textSize(FontSize)
@@ -137,6 +131,11 @@ function keyPressed()
 
     if (keyCode === 8)
         return false
+
+    if (keyCode === 48)
+    {
+        LoadTreeRepresentation(TreeRepresentation)
+    }
 }
 
 function ModifierKey()

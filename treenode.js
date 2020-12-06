@@ -20,6 +20,7 @@ class TreeNode
         this.childWidth = 0
         this.parent = null
         this.dead = false
+        this.color = "default"
         CurrentNodeID += 1
     }
 
@@ -195,7 +196,9 @@ class TreeNode
 
         if (keyCode === 80 && ModifierKey())
         {
-            this.takePicture()
+            //this.takePicture()
+            TreeRepresentation = GetTreeRepresentation(this)
+            console.log(TreeRepresentation)
         }
     }
 
