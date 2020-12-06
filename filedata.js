@@ -84,6 +84,7 @@ function LoadTreeRepresentation(treeRep)
 
             childNode.parent = node
             node.children.push(childNode)
+            childNode.recalculate()
         }
     }
 

@@ -3,6 +3,7 @@ const SpatialSize = 200
 function preload()
 {
     SaplingSprite = loadImage("sapling.png")
+    TitleSprite = loadImage("title.png")
     NewSprite = loadImage("new.png")
     LoadSprite = loadImage("open.png")
     CameraSprite = loadImage("camera.png")
@@ -22,6 +23,20 @@ function setup()
         LoadTreeRepresentation(treeBackup)
     }
 
+    UndoList = []
+    UndoIndex = 0
+    MostCurrentUndoIndex = 0
+    AddChange(true)
+
+    FileInput = createFileInput(function (file) {
+        print(file.data)
+        LoadTreeRepresentation(file.data)
+    })
+    FileInput.position(180,90)
+    FileInput.size(40,40)
+    FileInput.style("font-size", "0px")
+    FileInput.style("opacity", "0")
+
     RefreshCount = 0
 }
 
@@ -37,10 +52,6 @@ function Reset()
     let tree = new TreeNode(0,0, "root")
     AddToSpatialHash(tree.x,tree.y, tree)
     Trees = [tree]
-    UndoList = []
-    UndoIndex = 0
-    MostCurrentUndoIndex = 0
-    AddChange(true)
     Camera = {x:0, y:-50, zoom:1}
     CurrentMouseButton = -1
     Mouse = {x:0, y:0}
@@ -104,6 +115,31 @@ function RemoveFromSpatialHash(x,y, thing)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 window.addEventListener("contextmenu", function() { arguments[0].preventDefault(); }, false);
+
+document.addEventListener("keydown", function(e) {
+    if (e.metaKey || e.ctrlKey)
+    {
+        if (e.keyCode === 83)
+        {
+            e.preventDefault()
+            SaveFile()
+        }
+
+        if (e.keyCode === 65 || e.keyCode === 90)
+        {
+            e.preventDefault()
+        }
+    }
+
+    if (e.keyCode === 9)
+        e.preventDefault()
+
+}, false);
+
+function SaveFile()
+{
+    saveJSON(GetTreeRepresentation(Trees[0]), "myTree.json")
+}
 
 function windowResized()
 {
@@ -286,6 +322,10 @@ function Update()
                                         AddChange()
                                     }],
                                 ]],
+                                ["Add Parent", function () {
+                                    node.addParent()
+                                    AddChange()
+                                }],
                                 ["Delete", function () {
                                     node.delete()
                                     AddChange()
@@ -383,14 +423,15 @@ function Update()
 
     if (CurrentMouseButton === LEFT && PreviousMouseButton === -1)
     {
-        if (InHitbox(mouseX,mouseY, 130,90,40,40) && confirm("Open a new file?"))
+        if (InHitbox(mouseX,mouseY, 130,90,40,40))
         {
             Reset()
+            AddChange()
         }
 
         if (InHitbox(mouseX,mouseY, 130 + 50*2,90,40,40))
         {
-            saveJSON(GetTreeRepresentation(Trees[0]), "myTree.json")
+            SaveFile()
         }
 
         if (InHitbox(mouseX,mouseY, 130 + 50*3,90,40,40))
@@ -439,6 +480,7 @@ function Draw()
     image(LoadSprite, 130 + 50,90, 40,40)
     image(SaveSprite, 130 + 50*2,90, 40,40)
     image(CameraSprite, 130 + 50*3,90, 40,40)
+    image(TitleSprite, 120,30)
     let rot = RefreshCount*Math.PI*0.1
     arc(windowWidth-60,50, 30,30, rot,rot+Math.PI*1.5)
 }

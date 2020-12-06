@@ -43,6 +43,34 @@ class TreeNode
         return SelectionList[this.id] === this
     }
 
+    addParent()
+    {
+        let parent = new TreeNode(this.x,this.y)
+
+        if (this === Trees[0])
+        {
+            Trees[0] = parent
+            AddToSpatialHash(parent.x,parent.y, parent)
+        }
+        else if(this.parent && !this.parent.dead)
+        {
+            for (let i=0; i<this.parent.children.length; i++)
+            {
+                if (this.parent.children[i] === this)
+                {
+                    this.parent.children[i] = parent
+                    parent.parent = this.parent
+                    break
+                }
+            }
+        }
+
+        parent.children.push(this)
+        parent.color = this.color
+        this.parent = parent
+        this.recalculate()
+    }
+
     addChild(times)
     {
         this.widthChanged = true
@@ -51,6 +79,7 @@ class TreeNode
             let child = new TreeNode(this.x,this.y)
             this.children.push(child)
             child.parent = this
+            child.color = this.color
             child.recalculate()
         }
         AddChange()
