@@ -8,6 +8,8 @@ function preload()
     LoadSprite = loadImage("open.png")
     CameraSprite = loadImage("camera.png")
     SaveSprite = loadImage("save.png")
+    UndoSprite = loadImage("undo.png")
+    RedoSprite = loadImage("redo.png")
 }
 
 function setup()
@@ -430,14 +432,16 @@ function Update()
         }
 
         if (InHitbox(mouseX,mouseY, 130 + 50*2,90,40,40))
-        {
             SaveFile()
-        }
 
         if (InHitbox(mouseX,mouseY, 130 + 50*3,90,40,40))
-        {
             Trees[0].takePicture()
-        }
+
+        if (InHitbox(mouseX,mouseY, 130 + 50*4,90,40,40))
+            UndoChange()
+
+        if (InHitbox(mouseX,mouseY, 130 + 50*5,90,40,40))
+            RedoChange()
     }
 
     PreviousMouseButton = CurrentMouseButton
@@ -480,6 +484,8 @@ function Draw()
     image(LoadSprite, 130 + 50,90, 40,40)
     image(SaveSprite, 130 + 50*2,90, 40,40)
     image(CameraSprite, 130 + 50*3,90, 40,40)
+    image(UndoSprite, 130 + 50*4,90, 40,40)
+    image(RedoSprite, 130 + 50*5,90, 40,40)
     image(TitleSprite, 120,30)
     let rot = RefreshCount*Math.PI*0.1
     arc(windowWidth-60,50, 30,30, rot,rot+Math.PI*1.5)
