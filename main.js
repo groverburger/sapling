@@ -182,37 +182,17 @@ function Update()
         return
     }
 
-    UpdateCamera()
-
     // update the mouse world coordinates
     let lastMouseX = Mouse.x
     let lastMouseY = Mouse.y
     Mouse.x = Conversion(windowWidth/(-2*Camera.zoom) - Camera.x, windowWidth/(2*Camera.zoom) - Camera.x, 0, windowWidth, mouseX)
     Mouse.y = Conversion(windowHeight/(-2*Camera.zoom) - Camera.y, windowHeight/(2*Camera.zoom) - Camera.y, 0, windowHeight, mouseY)
 
-    if (CurrentMouseButton === LEFT)
-    {
-        // count the amount of things currently being selected
-        let amount = 0
-        for (const key in SelectionList)
-        {
-            amount++
-        }
-
-        if (amount > 0)
-        {
-            // don't empty out the selection list when holding shift
-            if (!keyIsDown(16))
-            {
-                SelectionList = {}
-            }
-            ScreenRefresh()
-        }
-    }
-
     // look at all the nodes near spatially to the mouse cursor
     // check if hovering over them
     let lastMouseHoveringNode = MouseHoveringNode
+    let clickedANode = false
+    let manipulatingArrows = false
     for (let x=-1; x<=1; x++)
     {
         for (let y=-1; y<=1; y++)
@@ -231,14 +211,26 @@ function Update()
 
                         if (CurrentMouseButton === LEFT)
                         {
+                            // remove all other nodse from the selection list if not holding shift
+                            if (!keyIsDown(16))
+                            {
+                                SelectionList = {}
+                            }
+
+                            // add this node
                             SelectionList[node.id] = node
+                            clickedANode = true
+
+                            ScreenRefresh()
 
                             for (let a=0; a<CurrentlyActiveArrows.length; a++)
                                 CurrentlyActiveArrows[a].anchor(node)
                         }
 
+                        // right click to open the context menu
                         if (CurrentMouseButton === RIGHT && PreviousMouseButton === -1)
                         {
+                            clickedANode = true
                             CurrentContextMenu = new ContextMenu(mouseX, mouseY, [
                                 ["Add Subnode", [
                                     ["Single", function () { node.addChild(1) }],
@@ -269,6 +261,72 @@ function Update()
                 }
             }
         }
+    }
+
+    for (const nodeid in SelectionList)
+    {
+        let node = SelectionList[nodeid]
+
+        if (node && node.arrows.length > 0)
+        {
+            for (let a=0; a<node.arrows.length; a++)
+            {
+                let arrow = node.arrows[a]
+                if (arrow.to)
+                {
+                    if ((arrow.hoveringPointOne() !== arrow.wasHoveringPointOne)
+                    ||  (arrow.hoveringPointTwo() !== arrow.wasHoveringPointTwo))
+                    {
+                        ScreenRefresh()
+                        clickedANode = true
+                        manipulatingArrows = true
+                    }
+
+                    if (CurrentMouseButton === LEFT)
+                    {
+                        if (arrow.hoveringPointTwo())
+                            arrow.manipulatingP2 = true
+                        if (arrow.hoveringPointOne())
+                            arrow.manipulatingP1 = true
+                    }
+                    else
+                    {
+                        arrow.manipulatingP1 = false
+                        arrow.manipulatingP2 = false
+                    }
+
+                    if (arrow.manipulatingP2)
+                    {
+                        arrow.xoff2 = Mouse.x - arrow.to.x
+                        arrow.yoff2 = Mouse.y - arrow.to.y - arrow.to.textHeight()/2 - 5
+                        manipulatingArrows = true
+                        clickedANode = true
+                        ScreenRefresh()
+                    }
+
+                    if (arrow.manipulatingP1)
+                    {
+                        arrow.xoff1 = Mouse.x - arrow.from.x
+                        arrow.yoff1 = Mouse.y - arrow.from.y - arrow.to.textHeight()/2 - 5
+                        manipulatingArrows = true
+                        clickedANode = true
+                        ScreenRefresh()
+                    }
+
+                    arrow.wasHoveringPointOne = arrow.hoveringPointOne()
+                    arrow.wasHoveringPointTwo = arrow.hoveringPointTwo()
+                }
+            }
+        }
+    }
+
+    if (!manipulatingArrows)
+        UpdateCamera()
+
+    if (CurrentMouseButton === LEFT && !clickedANode)
+    {
+        SelectionList = {}
+        ScreenRefresh()
     }
 
     let i = 0
@@ -359,3 +417,4 @@ function SetCurrentRenderTarget(target)
 function Clamp(n, min,max) { return Math.max(Math.min(n, max),min) }
 function Lerp(a,b,t) { return (1-t)*a + t*b }
 function Conversion(a,b, p1,p2, t) { return Lerp(a,b, Clamp((t-p1)/(p2-p1), 0,1)) }
+function Distance(x1,y1, x2,y2) { return Math.sqrt(Math.pow(x1-x2,2) + Math.pow(y1-y2,2)) }
