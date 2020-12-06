@@ -27,7 +27,7 @@ class ContextMenu
             this.width = Math.max(this.width, textWidth(thisText) + this.horizontalMargin*2 + addition)
         }
         this.height = this.textHeight()*(this.data.length) + this.verticalMargin*2
-
+        this.lastIndex = -1
         this.subcontexts = {}
         this.isSubcontext = false
         
@@ -63,8 +63,10 @@ class ContextMenu
         }
 
         // could be more optimized, but it's probably fine
-        if (movedX !== 0 || movedY !== 0)
+        if (index !== this.lastIndex)
             ScreenRefresh()
+
+        this.lastIndex = index
     }
 
     hoveringIndex()

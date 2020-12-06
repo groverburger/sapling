@@ -323,7 +323,7 @@ function Update()
     if (!manipulatingArrows)
         UpdateCamera()
 
-    if (CurrentMouseButton === LEFT && !clickedANode)
+    if (PreviousMouseButton !== LEFT && CurrentMouseButton === LEFT && !clickedANode)
     {
         SelectionList = {}
         ScreenRefresh()
