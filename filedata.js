@@ -17,11 +17,14 @@ function GetTreeRepresentation(rootNode)
         for (let i=0; i<node.arrows.length; i++)
         {
             let arrow = node.arrows[i]
-            nodeArrows[node.id].push({
-                from : arrow.from.id,
-                to : arrow.to.id,
-                anchorPoints : [arrow.xoff1, arrow.yoff1, arrow.xoff2, arrow.yoff2],
-            })
+            if (arrow && arrow.from && arrow.to)
+            {
+                nodeArrows[node.id].push({
+                    from : arrow.from.id,
+                    to : arrow.to.id,
+                    anchorPoints : [arrow.xoff1, arrow.yoff1, arrow.xoff2, arrow.yoff2],
+                })
+            }
         }
 
         // add my children, recursively
@@ -104,5 +107,45 @@ function LoadTreeRepresentation(treeRep)
             arrow.xoff2 = arrowData.anchorPoints[2]
             arrow.yoff2 = arrowData.anchorPoints[3]
         }
+    }
+}
+
+const UndoMax = 20
+
+function AddChange(dontStore)
+{
+    UndoIndex += 1
+    let treeRep = GetTreeRepresentation(Trees[0])
+    UndoList[UndoIndex] = treeRep
+
+    if (!dontStore)
+        storeItem("treeBackup", treeRep)
+
+    while (UndoIndex > UndoMax)
+    {
+        UndoList.splice(0,1)
+        UndoIndex -= 1
+    }
+
+    MostCurrentUndoIndex = UndoIndex
+}
+
+function UndoChange()
+{
+    SelectionList = {}
+    if (UndoIndex > 1)
+    {
+        UndoIndex -= 1
+        LoadTreeRepresentation(UndoList[UndoIndex])
+    }
+}
+
+function RedoChange()
+{
+    SelectionList = {}
+    if (UndoIndex < MostCurrentUndoIndex)
+    {
+        UndoIndex += 1
+        LoadTreeRepresentation(UndoList[UndoIndex])
     }
 }

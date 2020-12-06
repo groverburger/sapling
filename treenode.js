@@ -1,3 +1,12 @@
+const TreeNodeColors = {
+    "default" : [185, 185, 185],
+    "green" : [38, 114, 17],
+    "blue" : [35, 62, 148],
+    "red" : [237, 30, 40],
+    "dark" : [0.08,0.08,0.08],
+    "highlighter" : [224,215,94],
+}
+
 class TreeNode
 {
     constructor(x,y, text)
@@ -44,6 +53,7 @@ class TreeNode
             child.parent = this
             child.recalculate()
         }
+        AddChange()
     }
 
     delete()
@@ -158,6 +168,12 @@ class TreeNode
             biggestHeight = Math.max(biggestHeight, this.children[i].totalHeight() + this.lineHeight())
         }
 
+        for (let i=0; i<this.arrows.length; i++)
+        {
+            let arrow = this.arrows[i]
+            biggestHeight = Math.max(biggestHeight, arrow.height+8)
+        }
+
         return biggestHeight
     }
 
@@ -181,6 +197,7 @@ class TreeNode
 
             this.countSpaces()
             this.recalculate()
+            AddChange()
         }
 
         if (keyCode === 65 && ModifierKey())
@@ -192,14 +209,17 @@ class TreeNode
         if (keyCode === 46)
         {
             this.delete()
+            AddChange()
         }
 
+        /*
         if (keyCode === 80 && ModifierKey())
         {
             //this.takePicture()
             TreeRepresentation = GetTreeRepresentation(this)
             console.log(TreeRepresentation)
         }
+        */
     }
 
     countSpaces()
@@ -278,8 +298,8 @@ class TreeNode
 
         // draw the actual node
         _noStroke()
-        _fill(0.9*255)
-        if (this.text.length > 0)
+        _fill(TreeNodeColors[this.color][0], TreeNodeColors[this.color][1], TreeNodeColors[this.color][2])
+        if (this.text.length > 0 && this.color == "default")
             _fill(0,0,0,0)
         _rect(dx - this.textWidth()/2,dy - this.textHeight()/2, this.textWidth(),this.textHeight())
 
@@ -307,7 +327,9 @@ class TreeNode
         }
 
         _noStroke()
-        _fill(0)
+        _fill(255)
+        if (this.color == "default" || this.color == "highlighter")
+            _fill(0)
         _strokeWeight(1)
         _textAlign(CENTER)
         _text(this.text, dx,dy + 6)
@@ -316,7 +338,7 @@ class TreeNode
         while (i < this.arrows.length)
         {
             if (this.arrows[i].from === this)
-                this.arrows[i].draw()
+                this.arrows[i].draw(xoff,yoff)
             else
                 this.arrows.splice(i,1)
 

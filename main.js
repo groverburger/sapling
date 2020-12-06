@@ -1,11 +1,27 @@
 const SpatialSize = 200
 
+function preload()
+{
+    SaplingSprite = loadImage("sapling.png")
+    NewSprite = loadImage("new.png")
+    LoadSprite = loadImage("open.png")
+    CameraSprite = loadImage("camera.png")
+    SaveSprite = loadImage("save.png")
+}
+
 function setup()
 {
     Canvas = createCanvas()
     Canvas.style("display","block")
     AutoResizeCanvas()
     Reset()
+    let treeBackup = getItem("treeBackup")
+    if (treeBackup)
+    {
+        console.log(treeBackup)
+        LoadTreeRepresentation(treeBackup)
+    }
+
     RefreshCount = 0
 }
 
@@ -18,10 +34,13 @@ function Reset()
 {
     CurrentNodeID = 0
     SpatialHash = {}
-    Trees = []
     let tree = new TreeNode(0,0, "root")
     AddToSpatialHash(tree.x,tree.y, tree)
-    Trees.push(tree)
+    Trees = [tree]
+    UndoList = []
+    UndoIndex = 0
+    MostCurrentUndoIndex = 0
+    AddChange(true)
     Camera = {x:0, y:-50, zoom:1}
     CurrentMouseButton = -1
     Mouse = {x:0, y:0}
@@ -132,9 +151,19 @@ function keyPressed()
     if (keyCode === 8)
         return false
 
+    /*
     if (keyCode === 48)
     {
         LoadTreeRepresentation(TreeRepresentation)
+    }
+    */
+
+    if (keyCode === 90 && ModifierKey())
+    {
+        if (keyIsDown(16))
+            RedoChange()
+        else
+            UndoChange()
     }
 }
 
@@ -239,11 +268,12 @@ function Update()
                                     ["Quintuple", function () { node.addChild(5) }],
                                 ]],
                                 ["Change Color", [
-                                    ["Highlighter", function () { } ],
-                                    ["Blue", function () { } ],
-                                    ["Red", function () { } ],
-                                    ["Green", function () { } ],
-                                    ["Dark", function () { } ],
+                                    ["Default", function () { node.color = "default"; AddChange() } ],
+                                    ["Highlighter", function () { node.color = "highlighter"; AddChange() } ],
+                                    ["Blue", function () { node.color = "blue"; AddChange() } ],
+                                    ["Red", function () { node.color = "red"; AddChange() } ],
+                                    ["Green", function () { node.color = "green"; AddChange() } ],
+                                    ["Dark", function () { node.color = "dark"; AddChange() } ],
                                 ]],
                                 ["Arrows", [
                                     ["Add", function () {
@@ -251,9 +281,15 @@ function Update()
                                         node.arrows.push(arrow)
                                         CurrentlyActiveArrows.push(arrow)
                                     }],
-                                    ["Remove All", function () { node.arrows = [] }],
+                                    ["Remove All", function () {
+                                        node.arrows = []
+                                        AddChange()
+                                    }],
                                 ]],
-                                ["Delete", function () { node.delete() }],
+                                ["Delete", function () {
+                                    node.delete()
+                                    AddChange()
+                                }],
                             ])
                         }
                     }
@@ -345,6 +381,24 @@ function Update()
         ScreenRefresh()
     }
 
+    if (CurrentMouseButton === LEFT && PreviousMouseButton === -1)
+    {
+        if (InHitbox(mouseX,mouseY, 130,90,40,40) && confirm("Open a new file?"))
+        {
+            Reset()
+        }
+
+        if (InHitbox(mouseX,mouseY, 130 + 50*2,90,40,40))
+        {
+            saveJSON(GetTreeRepresentation(Trees[0]), "myTree.json")
+        }
+
+        if (InHitbox(mouseX,mouseY, 130 + 50*3,90,40,40))
+        {
+            Trees[0].takePicture()
+        }
+    }
+
     PreviousMouseButton = CurrentMouseButton
 }
 
@@ -379,7 +433,12 @@ function Draw()
     noStroke()
     fill(0)
     textAlign(LEFT)
-    text(Math.floor(Mouse.x) + ", " + Math.floor(Mouse.y), 50,50)
+    //text(Math.floor(Mouse.x) + ", " + Math.floor(Mouse.y), 50,50)
+    image(SaplingSprite, 10,10)
+    image(NewSprite, 130,90, 40,40)
+    image(LoadSprite, 130 + 50,90, 40,40)
+    image(SaveSprite, 130 + 50*2,90, 40,40)
+    image(CameraSprite, 130 + 50*3,90, 40,40)
     let rot = RefreshCount*Math.PI*0.1
     arc(windowWidth-60,50, 30,30, rot,rot+Math.PI*1.5)
 }
@@ -417,3 +476,8 @@ function Clamp(n, min,max) { return Math.max(Math.min(n, max),min) }
 function Lerp(a,b,t) { return (1-t)*a + t*b }
 function Conversion(a,b, p1,p2, t) { return Lerp(a,b, Clamp((t-p1)/(p2-p1), 0,1)) }
 function Distance(x1,y1, x2,y2) { return Math.sqrt(Math.pow(x1-x2,2) + Math.pow(y1-y2,2)) }
+
+function InHitbox(x,y, x1,y1, width,height)
+{
+    return x >= x1 && x <= x1+width && y >= y1 && y <= y1 + height
+}
