@@ -101,7 +101,8 @@ function LoadTreeRepresentation(treeRep)
             let nodeTo = idToNode[arrowData.to]
             let arrow = new Arrow(nodeFrom)
             arrow.to = nodeTo
-            nodeFrom.arrows.push(arrow)
+            if (nodeTo)
+                nodeFrom.arrows.push(arrow)
 
             arrow.xoff1 = arrowData.anchorPoints[0]
             arrow.yoff1 = arrowData.anchorPoints[1]
@@ -129,6 +130,15 @@ function AddChange(dontStore)
     }
 
     MostCurrentUndoIndex = UndoIndex
+}
+
+function AttemptAddChange()
+{
+    if (TreeHasChanged)
+    {
+        TreeHasChanged = false
+        AddChange()
+    }
 }
 
 function UndoChange()

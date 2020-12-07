@@ -10,6 +10,8 @@ function preload()
     SaveSprite = loadImage("save.png")
     UndoSprite = loadImage("undo.png")
     RedoSprite = loadImage("redo.png")
+    NoUndoSprite = loadImage("noundo.png")
+    NoRedoSprite = loadImage("noredo.png")
 }
 
 function setup()
@@ -21,7 +23,7 @@ function setup()
     let treeBackup = getItem("treeBackup")
     if (treeBackup)
     {
-        console.log(treeBackup)
+        //console.log(treeBackup)
         LoadTreeRepresentation(treeBackup)
     }
 
@@ -50,6 +52,7 @@ function ScreenRefresh()
 function Reset()
 {
     CurrentNodeID = 0
+    TreeHasChanged = false
     SpatialHash = {}
     let tree = new TreeNode(0,0, "root")
     AddToSpatialHash(tree.x,tree.y, tree)
@@ -58,7 +61,8 @@ function Reset()
     CurrentMouseButton = -1
     Mouse = {x:0, y:0}
     PreviousMouseButton = -1
-    SelectionList = []
+    SelectionList = {}
+    NextSelectionList = {}
     ShouldScreenRefresh = true
     MouseHoveringNode = null
     CurrentContextMenu = null
@@ -175,26 +179,28 @@ function keyTyped()
 {
     for (const index in SelectionList)
     {
-        SelectionList[index].keyTyped(key)
+        if (SelectionList[index])
+            SelectionList[index].keyTyped(key)
     }
 }
 
 function keyPressed()
 {
+    NextSelectionList = Object.assign({}, SelectionList)
+
     for (const index in SelectionList)
     {
-        SelectionList[index].keyPressed(keyCode)
+        if (SelectionList[index])
+            SelectionList[index].keyPressed(keyCode)
     }
+
+    SelectionList = NextSelectionList
+
+    if (ModifierKey() || keyIsDown(16))
+        AttemptAddChange()
 
     if (keyCode === 8)
         return false
-
-    /*
-    if (keyCode === 48)
-    {
-        LoadTreeRepresentation(TreeRepresentation)
-    }
-    */
 
     if (keyCode === 90 && ModifierKey())
     {
@@ -212,15 +218,6 @@ function ModifierKey()
 
 function mousePressed()
 {
-    /*
-    let amount = 0
-    for (const index in SelectionList)
-    {
-        amount += 1
-        SelectionList[index].mousePressed()
-    }
-    */
-
     if (CurrentContextMenu)
         CurrentContextMenu.mousePressed()
 }
@@ -324,6 +321,11 @@ function Update()
                                         AddChange()
                                     }],
                                 ]],
+                                ["Reorder", [
+                                    ["Left", function () { node.moveLeft(); AttemptAddChange()} ],
+                                    ["Right", function () { node.moveRight(); AttemptAddChange()} ],
+                                    ["Promote", function () { node.moveUp(); AttemptAddChange() } ],
+                                ]],
                                 ["Add Parent", function () {
                                     node.addParent()
                                     AddChange()
@@ -379,6 +381,7 @@ function Update()
                         manipulatingArrows = true
                         clickedANode = true
                         ScreenRefresh()
+                        TreeHasChanged = true
                     }
 
                     if (arrow.manipulatingP1)
@@ -388,6 +391,7 @@ function Update()
                         manipulatingArrows = true
                         clickedANode = true
                         ScreenRefresh()
+                        TreeHasChanged = true
                     }
 
                     arrow.wasHoveringPointOne = arrow.hoveringPointOne()
@@ -405,6 +409,10 @@ function Update()
         SelectionList = {}
         ScreenRefresh()
     }
+
+    // to make trivial changes like text additions happen
+    if (PreviousMouseButton !== CurrentMouseButton)
+        AttemptAddChange()
 
     let i = 0
     while (i < CurrentlyActiveArrows.length)
@@ -425,10 +433,12 @@ function Update()
 
     if (CurrentMouseButton === LEFT && PreviousMouseButton === -1)
     {
+        PreviousMouseButton = CurrentMouseButton
+
         if (InHitbox(mouseX,mouseY, 130,90,40,40))
         {
+            //AddChange()
             Reset()
-            AddChange()
         }
 
         if (InHitbox(mouseX,mouseY, 130 + 50*2,90,40,40))
@@ -484,11 +494,19 @@ function Draw()
     image(LoadSprite, 130 + 50,90, 40,40)
     image(SaveSprite, 130 + 50*2,90, 40,40)
     image(CameraSprite, 130 + 50*3,90, 40,40)
-    image(UndoSprite, 130 + 50*4,90, 40,40)
-    image(RedoSprite, 130 + 50*5,90, 40,40)
+    if (UndoIndex > 1)
+        image(UndoSprite, 130 + 50*4,90, 40,40)
+    else
+        image(NoUndoSprite, 130 + 50*4,90, 40,40)
+
+    if (UndoIndex < MostCurrentUndoIndex)
+        image(RedoSprite, 130 + 50*5,90, 40,40)
+    else
+        image(NoRedoSprite, 130 + 50*5,90, 40,40)
+
     image(TitleSprite, 120,30)
-    let rot = RefreshCount*Math.PI*0.1
-    arc(windowWidth-60,50, 30,30, rot,rot+Math.PI*1.5)
+    //let rot = RefreshCount*Math.PI*0.1
+    //arc(windowWidth-60,50, 30,30, rot,rot+Math.PI*1.5)
 }
 
 function UpdateCamera()

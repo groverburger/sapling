@@ -210,6 +210,7 @@ class TreeNode
     {
         this.text = this.text + text
         this.recalculate()
+        TreeHasChanged = true
 
         if (text == " ")
             this.spaces += 1
@@ -220,13 +221,18 @@ class TreeNode
         if (keyCode === 8)
         {
             if (ModifierKey())
+            {
                 this.text = ""
+                AddChange()
+            }
             else
+            {
                 this.text = this.text.slice(0,-1)
+                TreeHasChanged = true
+            }
 
             this.countSpaces()
             this.recalculate()
-            AddChange()
         }
 
         if (keyCode === 65 && ModifierKey())
@@ -238,17 +244,113 @@ class TreeNode
         if (keyCode === 46)
         {
             this.delete()
+            NextSelectionList[this.id] = null
             AddChange()
+
+            if (this.parent)
+            {
+                NextSelectionList[this.parent.id] = this.parent
+            }
+        }
+
+        // TODO when holding shift, move this node
+        if (keyIsDown(16))
+        {
+            if (keyCode == 37)
+            {
+                this.moveLeft()
+            }
+
+            if (keyCode == 38)
+            {
+                this.moveUp()
+            }
+
+            if (keyCode == 39)
+            {
+                this.moveRight()
+            }
+        }
+        else
+        {
+            if (keyCode == 37)
+                this.selectSiblingInDirection(-1)
+            if (keyCode == 39)
+                this.selectSiblingInDirection(1)
+            if (keyCode == 38 && this.parent)
+            {
+                NextSelectionList[this.parent.id] = this.parent
+                NextSelectionList[this.id] = null
+                AttemptAddChange()
+                ScreenRefresh()
+            }
+            if (keyCode == 40 && this.children.length > 0)
+            {
+                NextSelectionList[this.id] = null
+                let i = Math.floor(this.children.length/2)
+                NextSelectionList[this.children[i].id] = this.children[i]
+                AttemptAddChange()
+                ScreenRefresh()
+            }
         }
 
         /*
-        if (keyCode === 80 && ModifierKey())
+        if (keyCode == 86 && ModifierKey())
         {
-            //this.takePicture()
-            TreeRepresentation = GetTreeRepresentation(this)
-            console.log(TreeRepresentation)
+            print(navigator.clipboard.readText())
         }
         */
+
+        // cycle through things with shift
+        if (keyCode == 9)
+        {
+            if (keyIsDown(16))
+            {
+                if (!this.selectSiblingInDirection(-1) && this.children.length > 0)
+                {
+                    NextSelectionList[this.id] = null
+                    NextSelectionList[this.children[this.children.length-1].id] = this.children[this.children.length-1]
+                    ScreenRefresh()
+                }
+            }
+            else
+            {
+                if (!this.selectSiblingInDirection(1) && this.children.length > 0)
+                {
+                    NextSelectionList[this.id] = null
+                    NextSelectionList[this.children[0].id] = this.children[0]
+                    ScreenRefresh()
+                }
+            }
+        }
+    }
+
+    selectSiblingInDirection(direction)
+    {
+        if (!SelectionList[this.id] || !this.parent) { return }
+
+        let myIndex = null
+        for (let i=0; i<this.parent.children.length; i++)
+        {
+            if (this.parent.children[i] === this)
+            {
+                myIndex = i
+            }
+        }
+
+        AttemptAddChange()
+
+        let sibling = this.parent.children[myIndex+direction]
+        if (sibling && !sibling.dead)
+        {
+            NextSelectionList[this.id] = null
+            NextSelectionList[sibling.id] = sibling
+            ScreenRefresh()
+
+            return true
+        }
+
+        return false
     }
 
     countSpaces()
@@ -259,6 +361,63 @@ class TreeNode
             if (this.text[i] == " ")
             {
                 this.spaces += 1
+            }
+        }
+    }
+
+    moveUp()
+    {
+        if (this.parent && this.parent.parent)
+        {
+            for (let i=0; i<this.parent.children.length; i++)
+            {
+                if (this.parent.children[i] === this)
+                {
+                    this.parent.children.splice(i,1)
+                    break
+                }
+            }
+
+            this.parent.recalculate()
+            this.parent.parent.children.push(this)
+            this.parent = this.parent.parent
+            this.recalculate()
+            TreeHasChanged = true
+        }
+    }
+
+    moveLeft()
+    {
+        if (!this.parent) { return }
+
+        for (let i=1; i<this.parent.children.length; i++)
+        {
+            if (this.parent.children[i] === this)
+            {
+                let sibling = this.parent.children[i-1]
+                this.parent.children[i-1] = this
+                this.parent.children[i] = sibling
+                this.recalculate()
+                TreeHasChanged = true
+                break
+            }
+        }
+    }
+
+    moveRight()
+    {
+        if (!this.parent) { return }
+
+        for (let i=0; i<this.parent.children.length-1; i++)
+        {
+            if (this.parent.children[i] === this)
+            {
+                let sibling = this.parent.children[i+1]
+                this.parent.children[i+1] = this
+                this.parent.children[i] = sibling
+                this.recalculate()
+                TreeHasChanged = true
+                break
             }
         }
     }
@@ -308,7 +467,8 @@ class TreeNode
         for (const key in this.children)
         {
             let child = this.children[key]
-            //_stroke(0.15*255)
+            child.draw(false, xoff,yoff)
+
             _stroke(0)
             _strokeWeight(2)
             if (child.spaces > 0)
@@ -321,8 +481,6 @@ class TreeNode
             {
                 _line(dx,dy + this.textHeight()/2, child.x + xoff,child.y + yoff - child.textHeight()/2)
             }
-
-            child.draw(false, xoff,yoff)
         }
 
         // draw the actual node
@@ -366,7 +524,7 @@ class TreeNode
         let i = 0
         while (i < this.arrows.length)
         {
-            if (this.arrows[i].from === this)
+            if (this.arrows[i].from === this)// && this.arrows[i].to && !this.arrows[i].to.dead)
                 this.arrows[i].draw(xoff,yoff)
             else
                 this.arrows.splice(i,1)
