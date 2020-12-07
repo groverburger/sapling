@@ -149,8 +149,19 @@ class TreeNode
             AddToSpatialHash(child.x,child.y, child)
         }
 
+        // climb up the tree, recalculating
+        // then go down the tree updating relative positions
         if (this.parent)
+        {
             this.parent.recalculate()
+        }
+        else
+        {
+            for (let i=0; i<this.children.length; i++)
+            {
+                this.children[i].updateRelativePosition()
+            }
+        }
 
         ScreenRefresh()
     }
@@ -170,7 +181,11 @@ class TreeNode
         {
             RemoveFromSpatialHash(lastX,lastY, this)
             AddToSpatialHash(this.x,this.y, this)
-            ScreenRefresh()
+        }
+
+        for (let i=0; i<this.children.length; i++)
+        {
+            this.children[i].updateRelativePosition()
         }
     }
 
@@ -243,19 +258,37 @@ class TreeNode
 
         if (keyCode === 46)
         {
+            let index = null
+            if (this.parent)
+            {
+                // try to find sibling to my left
+                for (let i=0; i<this.parent.children.length; i++)
+                {
+                    if (this.parent.children[i] === this)
+                    {
+                        index = i
+                    }
+                }
+            }
+
             this.delete()
             NextSelectionList[this.id] = null
             AddChange()
-
             if (this.parent)
             {
-                NextSelectionList[this.parent.id] = this.parent
+                index = Math.max(index-1, 0)
+                let node = this.parent.children[index]
+                if (node && !node.dead)
+                    NextSelectionList[node.id] = node
+                else if (!this.parent.dead)
+                    NextSelectionList[this.parent.id] = this.parent
             }
         }
 
-        // TODO when holding shift, move this node
         if (keyIsDown(16))
         {
+            // move around this node with arrows keys holding shift
+
             if (keyCode == 37)
             {
                 this.moveLeft()
@@ -273,6 +306,7 @@ class TreeNode
         }
         else
         {
+            // just move selection around when pressing the arrows keys without shift
             if (keyCode == 37)
                 this.selectSiblingInDirection(-1)
             if (keyCode == 39)
@@ -301,7 +335,8 @@ class TreeNode
         }
         */
 
-        // cycle through things with shift
+        // cycle through things with tab
+        // cycle backwards when holding shift
         if (keyCode == 9)
         {
             if (keyIsDown(16))
@@ -461,7 +496,7 @@ class TreeNode
         let dx = this.x + xoff
         let dy = this.y + yoff
 
-        this.updateRelativePosition()
+        //this.updateRelativePosition()
 
         // draw all of this node's children
         for (const key in this.children)

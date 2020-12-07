@@ -275,7 +275,7 @@ function Update()
                         if (CurrentMouseButton === LEFT)
                         {
                             // remove all other nodse from the selection list if not holding shift
-                            if (!keyIsDown(16))
+                            if (!keyIsDown(16) || true)
                             {
                                 SelectionList = {}
                             }
