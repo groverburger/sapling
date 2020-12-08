@@ -73,7 +73,6 @@ class TreeNode
 
     addChild(times)
     {
-        this.widthChanged = true
         for (let i=0; i<(times || 1); i++)
         {
             let child = new TreeNode(this.x,this.y)
@@ -207,6 +206,7 @@ class TreeNode
     totalHeight()
     {
         let biggestHeight = 0
+
         for (let i=0; i<this.children.length; i++)
         {
             biggestHeight = Math.max(biggestHeight, this.children[i].totalHeight() + this.lineHeight())

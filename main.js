@@ -61,6 +61,7 @@ function Reset()
     SpatialHash = {}
     let tree = new TreeNode(0,0, "root")
     AddToSpatialHash(tree.x,tree.y, tree)
+    tree.recalculate()
     Trees = [tree]
     Camera = {x:0, y:-50, zoom:1}
     CurrentMouseButton = -1
