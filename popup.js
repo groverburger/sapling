@@ -31,6 +31,7 @@ class ContextMenu
         this.subcontexts = {}
         this.isSubcontext = false
         
+        Tutorial = false
         ScreenRefresh()
     }
 

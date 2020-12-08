@@ -233,8 +233,10 @@ class TreeNode
 
     keyPressed(keyCode)
     {
+        // backspace
         if (keyCode === 8)
         {
+            // ctrl-backspace deletes all text in node
             if (ModifierKey())
             {
                 this.text = ""
@@ -250,12 +252,14 @@ class TreeNode
             this.recalculate()
         }
 
+        // ctrl-a adds a child
         if (keyCode === 65 && ModifierKey())
         {
             this.addChild()
             this.recalculate()
         }
 
+        // delete key
         if (keyCode === 46)
         {
             let index = null
@@ -328,12 +332,18 @@ class TreeNode
             }
         }
 
-        /*
-        if (keyCode == 86 && ModifierKey())
+        // copy
+        if (keyCode == 67 && ModifierKey())
         {
-            print(navigator.clipboard.readText())
+            let textArea = document.createElement("textarea")
+            textArea.value = this.text
+            textArea.style.position = "fixed"
+            document.body.appendChild(textArea)
+            textArea.focus()
+            textArea.select()
+            print(document.execCommand("copy"))
+            document.body.removeChild(textArea)
         }
-        */
 
         // cycle through things with tab
         // cycle backwards when holding shift
@@ -341,20 +351,42 @@ class TreeNode
         {
             if (keyIsDown(16))
             {
-                if (!this.selectSiblingInDirection(-1) && this.children.length > 0)
+                if (!this.selectSiblingInDirection(-1))
                 {
-                    NextSelectionList[this.id] = null
-                    NextSelectionList[this.children[this.children.length-1].id] = this.children[this.children.length-1]
-                    ScreenRefresh()
+                    if (this.children.length > 0)
+                    {
+                        // if i have children, go down
+                        NextSelectionList[this.id] = null
+                        NextSelectionList[this.children[this.children.length-1].id] = this.children[this.children.length-1]
+                        ScreenRefresh()
+                    }
+                    else if (this.parent)
+                    {
+                        // otherwise, go up
+                        NextSelectionList[this.id] = null
+                        NextSelectionList[this.parent.id] = this.parent
+                        ScreenRefresh()
+                    }
                 }
             }
             else
             {
-                if (!this.selectSiblingInDirection(1) && this.children.length > 0)
+                if (!this.selectSiblingInDirection(1))
                 {
-                    NextSelectionList[this.id] = null
-                    NextSelectionList[this.children[0].id] = this.children[0]
-                    ScreenRefresh()
+                    if (this.children.length > 0)
+                    {
+                        // if i have children, go down
+                        NextSelectionList[this.id] = null
+                        NextSelectionList[this.children[0].id] = this.children[0]
+                        ScreenRefresh()
+                    }
+                    else if (this.parent)
+                    {
+                        // otherwise, go up
+                        NextSelectionList[this.id] = null
+                        NextSelectionList[this.parent.id] = this.parent
+                        ScreenRefresh()
+                    }
                 }
             }
         }
@@ -386,6 +418,14 @@ class TreeNode
         }
 
         return false
+    }
+
+    paste(text)
+    {
+        this.text = text
+        this.countSpaces()
+        this.recalculate()
+        AddChange()
     }
 
     countSpaces()

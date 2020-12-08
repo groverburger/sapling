@@ -12,6 +12,7 @@ function preload()
     RedoSprite = loadImage("redo.png")
     NoUndoSprite = loadImage("noundo.png")
     NoRedoSprite = loadImage("noredo.png")
+    InfoSprite = loadImage("info.png")
 }
 
 function setup()
@@ -20,11 +21,15 @@ function setup()
     Canvas.style("display","block")
     AutoResizeCanvas()
     Reset()
+    Tutorial = false
     let treeBackup = getItem("treeBackup")
     if (treeBackup)
     {
-        //console.log(treeBackup)
         LoadTreeRepresentation(treeBackup)
+    }
+    else
+    {
+        Tutorial = true
     }
 
     UndoList = []
@@ -142,6 +147,49 @@ document.addEventListener("keydown", function(e) {
 
 }, false);
 
+document.addEventListener("paste", function(event) {
+    // cancel original event
+    event.preventDefault()
+
+    // get text representation of clipboard
+    let text = event.clipboardData.getData("text/plain");
+
+    for (const key in SelectionList)
+    {
+        let node = SelectionList[key]
+        if (node)
+        {
+            node.paste(text)
+        }
+    }
+})
+
+/*
+document.addEventListener("copy", function(event) {
+    // cancel original event
+    event.preventDefault()
+
+    // get text representation of clipboard
+    let text = event.clipboardData.getData("text/plain");
+
+    for (const key in SelectionList)
+    {
+        let node = SelectionList[key]
+        if (node)
+        {
+            let textArea = document.createElement("textarea")
+            textArea.value = node.text
+            textArea.style.position = "fixed"
+            document.body.appendChild(textArea)
+            textArea.focus()
+            textArea.select()
+            print(document.execCommand("copy"))
+            document.body.removeChild(textArea)
+        }
+    }
+})
+*/
+
 function SaveFile()
 {
     saveJSON(GetTreeRepresentation(Trees[0]), "myTree.json")
@@ -199,15 +247,34 @@ function keyPressed()
     if (ModifierKey() || keyIsDown(16))
         AttemptAddChange()
 
-    if (keyCode === 8)
+    // apostrophe brings up quick search on firefox, block it here but still send the keyTyped
+    if (keyCode == 222)
+    {
+        keyTyped("'")
+        return false
+    }
+
+    // backspace and enter
+    if (keyCode == 8 || keyCode == 13)
         return false
 
-    if (keyCode === 90 && ModifierKey())
+    // copying
+    if (keyCode == 67 && ModifierKey())
+        return false
+
+    // z for undo/redo
+    if (keyCode == 90 && ModifierKey())
     {
         if (keyIsDown(16))
             RedoChange()
         else
             UndoChange()
+    }
+
+    // ctrl - shift - 8 for clearing cache
+    if (keyCode == 56 && ModifierKey() && keyIsDown(16))
+    {
+        clearStorage()
     }
 }
 
@@ -294,7 +361,7 @@ function Update()
                         if (CurrentMouseButton === RIGHT && PreviousMouseButton === -1)
                         {
                             clickedANode = true
-                            CurrentContextMenu = new ContextMenu(mouseX, mouseY, [
+                            let contextData = [
                                 ["Add Subnode", [
                                     ["Single", function () { node.addChild(1) }],
                                     ["Double", function () { node.addChild(2) }],
@@ -330,11 +397,27 @@ function Update()
                                     node.addParent()
                                     AddChange()
                                 }],
-                                ["Delete", function () {
+                            ]
+
+                            if (node.parent)
+                            {
+                                contextData.push(["Delete", function () {
                                     node.delete()
                                     AddChange()
-                                }],
-                            ])
+                                }])
+                            }
+
+                            if (node.children.length > 0)
+                            {
+                                contextData.push(["Delete All Subnodes", function () {
+                                    while (node.children.length > 0)
+                                        node.children[0].delete()
+
+                                    AddChange()
+                                }])
+                            }
+
+                            CurrentContextMenu = new ContextMenu(mouseX, mouseY, contextData)
                         }
                     }
                 }
@@ -452,6 +535,35 @@ function Update()
 
         if (InHitbox(mouseX,mouseY, 130 + 50*5,90,40,40))
             RedoChange()
+
+        if (InHitbox(mouseX,mouseY, 130 + 50*6,90,40,40))
+        {
+alert(`Sapling v3.0
+============
+
+By Zach Booth, December 2020
+Created for making syntax trees in Jorge Hankamer's Syntax 1 class, UCSC Fall 2020
+
+-- Basics --
+
+Click on a node to select it.
+Type to edit text in a selected node.
+Right click a node to open the node's options menu.
+Click and drag to move the camera, scroll to zoom in and out.
+
+-- Hotkeys --
+
+CTRL+Z - Undo
+Shift+CTRL+Z - Redo
+CTRL+A - Adds a subnode beneath the selected node
+Delete - Deletes the currently selected node
+CTRL+Delete - Deletes all text in the currently selected node
+Arrow Keys - Move selection around between nodes
+Tab - Select the sibling to the right of the currently selected node
+Shift+Tab - Select the sibling to the left of the currently selected node
+Shift+Arrow Keys - Reorder the currently selected node
+`)
+        }
     }
 
     PreviousMouseButton = CurrentMouseButton
@@ -480,6 +592,14 @@ function Draw()
             SelectionList[key].draw(true)
     }
 
+    if (Tutorial)
+    {
+        textAlign(CENTER)
+        fill(120)
+        text("Right click \"root\" to start!", 0,100)
+        textAlign(LEFT)
+    }
+
     pop()
 
     if (CurrentContextMenu)
@@ -503,6 +623,8 @@ function Draw()
         image(RedoSprite, 130 + 50*5,90, 40,40)
     else
         image(NoRedoSprite, 130 + 50*5,90, 40,40)
+
+    image(InfoSprite, 130 + 50*6,90, 40,40)
 
     image(TitleSprite, 120,30)
     //let rot = RefreshCount*Math.PI*0.1

@@ -116,8 +116,13 @@ const UndoMax = 20
 
 function AddChange(dontStore)
 {
-    UndoIndex += 1
     let treeRep = GetTreeRepresentation(Trees[0])
+
+    // return if there is no difference between this state and last state
+    //print(UndoIndex, UndoList[UndoIndex], UndoList[UndoIndex] && JSON.stringify(treeRep) === JSON.stringify(UndoList[UndoIndex]))
+    if (UndoList[UndoIndex] && JSON.stringify(treeRep) === JSON.stringify(UndoList[UndoIndex])) { return }
+
+    UndoIndex += 1
     UndoList[UndoIndex] = treeRep
 
     if (!dontStore)
