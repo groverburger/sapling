@@ -52,6 +52,17 @@ function setup()
     tipLink.size(40,40)
     tipLink.style("opacity", "0")
 
+    MenuBarTooltip = [
+        "New Tree",
+        "Open Tree",
+        "Save Tree",
+        "Save Tree as Image",
+        "Undo",
+        "Redo",
+        "Info",
+        "Buy me a coffee!",
+    ]
+
     RefreshCount = 0
 }
 
@@ -581,6 +592,15 @@ Shift+Arrow Keys - Reorder the currently selected node
     }
 
     PreviousMouseButton = CurrentMouseButton
+
+    for (let i=0; i<8; i++)
+    {
+        if ((InHitbox(mouseX,mouseY, 130 + 50*i,90,40,40) && (movedX || movedY))
+        || InHitbox(pmouseX,pmouseY, 130 + 50*i,90,40,40))
+        {
+            ScreenRefresh()
+        }
+    }
 }
 
 function Draw()
@@ -611,7 +631,12 @@ function Draw()
         textAlign(CENTER)
         fill(120)
         text("Right click \"root\" to start!", 0,100)
+
+        textSize(FontSize*3/4)
+        text("If you like Sapling, please consider leaving me a tip!", 0,140)
+        text("Follow me on Twitter: @grover_burger", 0,155)
         textAlign(LEFT)
+        textSize(FontSize)
     }
 
     pop()
@@ -644,6 +669,19 @@ function Draw()
     image(TitleSprite, 120,30)
     //let rot = RefreshCount*Math.PI*0.1
     //arc(windowWidth-60,50, 30,30, rot,rot+Math.PI*1.5)
+
+    for (let i=0; i<8; i++)
+    {
+        if (InHitbox(mouseX,mouseY, 130 + 50*i,90,40,40))
+        {
+            noStroke()
+            fill(0,0,0, 200)
+            rect(mouseX,mouseY, textWidth(MenuBarTooltip[i]) + 80,32)
+            stroke("white")
+            fill("white")
+            text(MenuBarTooltip[i], mouseX + 40,mouseY+22)
+        }
+    }
 }
 
 function UpdateCamera()
