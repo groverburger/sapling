@@ -1,5 +1,5 @@
 const TreeNodeColors = {
-    "default" : [185, 185, 185],
+    "default" : [180, 180, 180],
     "green" : [38, 114, 17],
     "blue" : [35, 62, 148],
     "red" : [237, 30, 40],

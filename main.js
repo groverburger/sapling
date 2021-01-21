@@ -13,6 +13,7 @@ function preload()
     NoUndoSprite = loadImage("noundo.png")
     NoRedoSprite = loadImage("noredo.png")
     InfoSprite = loadImage("info.png")
+    TipSprite = loadImage("tips.png")
 }
 
 function setup()
@@ -46,6 +47,11 @@ function setup()
     FileInput.style("font-size", "0px")
     FileInput.style("opacity", "0")
 
+    const tipLink = createA("https://www.paypal.me/groverburger", "tip me!")
+    tipLink.position(480,90)
+    tipLink.size(40,40)
+    tipLink.style("opacity", "0")
+
     RefreshCount = 0
 }
 
@@ -63,7 +69,7 @@ function Reset()
     AddToSpatialHash(tree.x,tree.y, tree)
     tree.recalculate()
     Trees = [tree]
-    Camera = {x:0, y:-50, zoom:1}
+    Camera = {x:0, y:-50, zoom:1.25}
     CurrentMouseButton = -1
     Mouse = {x:0, y:0}
     PreviousMouseButton = -1
@@ -565,6 +571,13 @@ Shift+Tab - Select the sibling to the left of the currently selected node
 Shift+Arrow Keys - Reorder the currently selected node
 `)
         }
+
+        /*
+        if (InHitbox(mouseX,mouseY, 130 + 50*7,90,40,40))
+        {
+            window.open("https://www.paypal.me/groverburger", "_blank")
+        }
+    */
     }
 
     PreviousMouseButton = CurrentMouseButton
@@ -626,6 +639,7 @@ function Draw()
         image(NoRedoSprite, 130 + 50*5,90, 40,40)
 
     image(InfoSprite, 130 + 50*6,90, 40,40)
+    image(TipSprite, 130 + 50*7,90, 40,40)
 
     image(TitleSprite, 120,30)
     //let rot = RefreshCount*Math.PI*0.1
