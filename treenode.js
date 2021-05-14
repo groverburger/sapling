@@ -25,7 +25,6 @@ class TreeNode
         this.childAnchorPoints = []
         this.arrows = []
         this.spaces = 0
-        this.underscores = 0
         this.width = 0
         this.childWidth = 0
         this.parent = null
@@ -237,9 +236,6 @@ class TreeNode
         if (text == " ") {
             this.spaces += 1
         }
-        if (text == "_") {
-            this.underscores += 1
-        }
     }
 
     keyPressed(keyCode)
@@ -441,16 +437,11 @@ class TreeNode
     countSpaces()
     {
         this.spaces = 0
-        this.underscores = 0
         for (let i=0; i<this.text.length; i++)
         {
             if (this.text[i] == " ")
             {
                 this.spaces += 1
-            }
-
-            if (this.text[i] == "_" && i < this.text.length) {
-                this.underscores += 1
             }
         }
     }
@@ -638,25 +629,24 @@ class TreeNode
     }
 
     getMainTextAndSubText() {
-        let mainText = this.text
         let subText = ""
-        if (this.underscores > 0) {
-            mainText = ""
-            let sub = false
-            for (let i=0; i<this.text.length; i++) {
-                let char = this.text[i]
-                if (sub) {
-                    subText += char
-                }
-
-                if (char == "_" && i < this.text.length-1) {
-                    sub = true
-                }
-
-                if (!sub) {
-                    mainText += char
-                }
+        let mainText = ""
+        let sub = false
+        let lastChar = ""
+        for (let i=0; i<this.text.length; i++) {
+            let char = this.text[i]
+            if (sub) {
+                subText += char
+            } else {
+                mainText += char
             }
+
+            if (char == "_" && lastChar == "_" && i < this.text.length-1) {
+                sub = true
+                mainText = mainText.substring(0, mainText.length-2)
+            }
+
+            lastChar = char
         }
 
         return [mainText, subText]
