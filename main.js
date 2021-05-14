@@ -1,3 +1,5 @@
+const FontSize = 18
+const SubFontSize = 14
 const SpatialSize = 200
 
 function preload()
@@ -33,6 +35,26 @@ function setup()
         Tutorial = true
     }
 
+    if (treeBackup != null && treeBackup.version == undefined) {
+CreateInformationDiv(
+`<h1>Sapling has been updated!</h1>
+May 13th, 2021
+<br>
+<h3>Subscript notation has been added!</h3>
+When you write two underscores in a row __ inside of a node, the text after it becomes a subscript!
+It's useful for putting indices on traces.
+<br>
+<h3>Other Things</h3>
+<ul>
+    <li>Info panel popup should no longer do weird things on Chrome or Safari</li>
+    <li>Clicking the Sapling icon takes you to the source code repository on Github</li>
+</ul>
+<br>
+Please leave your feedback <a href=https://forms.gle/MDyZWf3bP4wh5fPF6>on this google form</a>!
+<br>
+`)
+    }
+
     UndoList = []
     UndoIndex = 0
     MostCurrentUndoIndex = 0
@@ -54,7 +76,7 @@ function setup()
 
     const sourceLink = createA("https://github.com/groverburger/sapling", "Github Repo", "_blank")
     sourceLink.position(10,10)
-    sourceLink.size(128,128)
+    sourceLink.size(110,110)
     sourceLink.style("opacity", "0")
 
     MenuBarTooltip = [
@@ -75,9 +97,6 @@ function ScreenRefresh()
 {
     ShouldScreenRefresh = true
 }
-
-const FontSize = 18
-const SubFontSize = 14
 
 function Reset()
 {
@@ -224,6 +243,10 @@ function windowResized()
 {
     AutoResizeCanvas()
     ScreenRefresh()
+
+    if (typeof InformationDiv != "undefined") {
+        InformationDiv.position(innerWidth/2 - 200, 32)
+    }
 }
 
 function AutoResizeCanvas()
@@ -567,7 +590,7 @@ function Update()
 
         if (InHitbox(mouseX,mouseY, 130 + 50*6,90,40,40))
         {
-let content = (
+CreateInformationDiv(
 `<h1>Sapling v3.1</h1>
 <br>
 Last updated May 13th, 2021
@@ -579,12 +602,13 @@ Please leave your feedback <a href=https://forms.gle/MDyZWf3bP4wh5fPF6>on this g
 <br>
 Check out the source code and change log <a href=https://github.com/groverburger/sapling>here</a>!
 
-<h2>Basics</h2>
+<h2>How to Use</h2>
 
 Click on a node to select it.<br>
 Type to edit text in a selected node.<br>
 Right click a node to open the node's options menu.<br>
 Click and drag to move the camera, scroll to zoom in and out.<br>
+Adding two underscores in a row __ in a node makes everything after it a subscript.<br>
 
 <h2>Hotkeys</h2>
 
@@ -599,19 +623,7 @@ Click and drag to move the camera, scroll to zoom in and out.<br>
 <li>Shift+Tab - Select the sibling to the left of the currently selected node</li>
 <li>Shift+Arrow Keys - Reorder the currently selected node</li>
 </ul>
-
-<button onclick="if (InformationDiv) InformationDiv.remove(); InformationDiv = undefined">Done</button>
-`
-)
-            let div = createDiv(content)
-            div.style("position", "fixed")
-            div.style("width", "400px")
-            div.style("background-color", "white")
-            div.style("padding", "24px")
-            div.style("font-family", "arial")
-            div.position(innerWidth/2 - 200, 32)
-            InformationDiv = div
-            ScreenRefresh()
+`)
         }
 
         /*
@@ -633,8 +645,8 @@ Click and drag to move the camera, scroll to zoom in and out.<br>
         }
     }
 
-    if ((InHitbox(mouseX,mouseY, 10,10,128,128) && (movedX || movedY))
-    || InHitbox(pmouseX,pmouseY, 10,10,128,128))
+    if ((InHitbox(mouseX,mouseY, 10,10,110,110) && (movedX || movedY))
+    || InHitbox(pmouseX,pmouseY, 10,10,110,110))
     {
         ScreenRefresh()
     }
@@ -709,7 +721,7 @@ function Draw()
 
     if (typeof InformationDiv != "undefined") return
 
-    if (InHitbox(mouseX,mouseY, 10,10,128,128)) {
+    if (InHitbox(mouseX,mouseY, 10,10,110,110)) {
         let _text = "View source code and change log" 
         noStroke()
         fill(0,0,0, 200)
@@ -770,4 +782,17 @@ function Distance(x1,y1, x2,y2) { return Math.sqrt(Math.pow(x1-x2,2) + Math.pow(
 function InHitbox(x,y, x1,y1, width,height)
 {
     return x >= x1 && x <= x1+width && y >= y1 && y <= y1 + height
+}
+
+function CreateInformationDiv(content)
+{
+    let div = createDiv(content + `<br><br><button style="display: block; margin-left: auto; margin-right: auto; padding: 16px;" onclick="if (InformationDiv) InformationDiv.remove(); InformationDiv = undefined">Done</button>`)
+    div.style("position", "fixed")
+    div.style("width", "400px")
+    div.style("background-color", "white")
+    div.style("padding", "24px")
+    div.style("font-family", "arial")
+    div.position(innerWidth/2 - 200, 32)
+    InformationDiv = div
+    ScreenRefresh()
 }

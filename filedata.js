@@ -43,6 +43,7 @@ function GetTreeRepresentation(rootNode)
         nodeData : nodeData,
         nodeArrows : nodeArrows,
         maxIndex : CurrentNodeID,
+        version : 3.1,
     }
 }
 
