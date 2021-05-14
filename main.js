@@ -620,8 +620,8 @@ Adding two underscores in a row __ in a node makes everything after it a subscri
 <li>Delete - Deletes the currently selected node</li>
 <li>CTRL+Backspace - Deletes all text in the currently selected node</li>
 <li>Arrow Keys - Move selection around between nodes</li>
-<li>Tab - Select the sibling to the right of the currently selected node</li>
-<li>Shift+Tab - Select the sibling to the left of the currently selected node</li>
+<li>Tab - Traverse the tree to the right</li>
+<li>Shift+Tab - Traverse the tree to the left</li>
 <li>Shift+Arrow Keys - Reorder the currently selected node</li>
 </ul>
 `)
