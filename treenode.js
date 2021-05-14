@@ -451,6 +451,8 @@ class TreeNode
         NextSelectionList[this.id] = null
         NextSelectionList[bestn.id] = bestn
         ScreenRefresh()
+
+        return true
     }
 
     paste(text)

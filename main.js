@@ -618,7 +618,7 @@ Adding two underscores in a row __ in a node makes everything after it a subscri
 <li>Shift+CTRL+Z - Redo</li>
 <li>CTRL+A - Adds a subnode beneath the selected node</li>
 <li>Delete - Deletes the currently selected node</li>
-<li>CTRL+Delete - Deletes all text in the currently selected node</li>
+<li>CTRL+Backspace - Deletes all text in the currently selected node</li>
 <li>Arrow Keys - Move selection around between nodes</li>
 <li>Tab - Select the sibling to the right of the currently selected node</li>
 <li>Shift+Tab - Select the sibling to the left of the currently selected node</li>
