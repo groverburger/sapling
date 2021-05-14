@@ -25,6 +25,7 @@ class TreeNode
         this.childAnchorPoints = []
         this.arrows = []
         this.spaces = 0
+        this.underscores = 0
         this.width = 0
         this.childWidth = 0
         this.parent = null
@@ -190,7 +191,13 @@ class TreeNode
 
     textWidth()
     {
-        return Math.max(textWidth(this.text) + 10, 45)
+        let [mainText, subText] = this.getMainTextAndSubText()
+        textSize(FontSize)
+        let w1 = textWidth(mainText)
+        textSize(SubFontSize)
+        let w2 = textWidth(subText)
+        textSize(FontSize)
+        return Math.max(w1 + w2 + 10, 45)
     }
 
     textHeight()
@@ -227,8 +234,12 @@ class TreeNode
         this.recalculate()
         TreeHasChanged = true
 
-        if (text == " ")
+        if (text == " ") {
             this.spaces += 1
+        }
+        if (text == "_") {
+            this.underscores += 1
+        }
     }
 
     keyPressed(keyCode)
@@ -341,7 +352,6 @@ class TreeNode
             document.body.appendChild(textArea)
             textArea.focus()
             textArea.select()
-            print(document.execCommand("copy"))
             document.body.removeChild(textArea)
         }
 
@@ -431,11 +441,16 @@ class TreeNode
     countSpaces()
     {
         this.spaces = 0
+        this.underscores = 0
         for (let i=0; i<this.text.length; i++)
         {
             if (this.text[i] == " ")
             {
                 this.spaces += 1
+            }
+
+            if (this.text[i] == "_" && i < this.text.length) {
+                this.underscores += 1
             }
         }
     }
@@ -516,6 +531,8 @@ class TreeNode
         let _rect = rect
         let _text = text
         let _textAlign = textAlign
+        let _textSize = textSize
+        let _textWidth = textWidth
         let renderTarget = GetCurrentRenderTarget()
         if (renderTarget)
         {
@@ -528,6 +545,8 @@ class TreeNode
             _rect = renderTarget.rect
             _text = renderTarget.text
             _textAlign = renderTarget.textAlign
+            _textSize = renderTarget.textSize
+            _textWidth = renderTarget.textWidth
         }
 
         // can be shifted around when rendering to an image
@@ -593,8 +612,18 @@ class TreeNode
         if (this.color == "default" || this.color == "highlighter")
             _fill(0)
         _strokeWeight(1)
-        _textAlign(CENTER)
-        _text(this.text, dx,dy + 6)
+        _textAlign(LEFT)
+
+        let [mainText, subText] = this.getMainTextAndSubText()
+        _textSize(FontSize)
+        let w1 = _textWidth(mainText)
+        _textSize(SubFontSize)
+        let w2 = _textWidth(subText)
+        _textSize(FontSize)
+
+        _text(mainText, dx-w1/2-w2/2, dy + 6)
+        _textSize(SubFontSize)
+        _text(subText, dx+w1/2-w2/2, dy + 10)
 
         let i = 0
         while (i < this.arrows.length)
@@ -606,6 +635,31 @@ class TreeNode
 
             i += 1
         }
+    }
+
+    getMainTextAndSubText() {
+        let mainText = this.text
+        let subText = ""
+        if (this.underscores > 0) {
+            mainText = ""
+            let sub = false
+            for (let i=0; i<this.text.length; i++) {
+                let char = this.text[i]
+                if (sub) {
+                    subText += char
+                }
+
+                if (char == "_" && i < this.text.length-1) {
+                    sub = true
+                }
+
+                if (!sub) {
+                    mainText += char
+                }
+            }
+        }
+
+        return [mainText, subText]
     }
 
     takePicture()

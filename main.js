@@ -47,10 +47,15 @@ function setup()
     FileInput.style("font-size", "0px")
     FileInput.style("opacity", "0")
 
-    const tipLink = createA("https://www.paypal.me/groverburger", "tip me!")
+    const tipLink = createA("https://www.paypal.me/groverburger", "tip me!", "_blank")
     tipLink.position(480,90)
     tipLink.size(40,40)
     tipLink.style("opacity", "0")
+
+    const sourceLink = createA("https://github.com/groverburger/sapling", "Github Repo", "_blank")
+    sourceLink.position(10,10)
+    sourceLink.size(128,128)
+    sourceLink.style("opacity", "0")
 
     MenuBarTooltip = [
         "New Tree",
@@ -70,6 +75,9 @@ function ScreenRefresh()
 {
     ShouldScreenRefresh = true
 }
+
+const FontSize = 18
+const SubFontSize = 14
 
 function Reset()
 {
@@ -91,7 +99,6 @@ function Reset()
     CurrentContextMenu = null
     CurrentRenderTarget = null
     TreeRepresentation = null
-    FontSize = 18
     CurrentlyActiveArrows = []
     textSize(FontSize)
 }
@@ -226,6 +233,8 @@ function AutoResizeCanvas()
 
 function mouseWheel(event)
 {
+    if (typeof InformationDiv != "undefined") return
+
     let scaleAmount = 1.05
 
     if (event.delta > 0)
@@ -319,6 +328,8 @@ function draw()
 
 function Update()
 {
+    if (typeof InformationDiv != "undefined") return
+
     if (mouseIsPressed)
         CurrentMouseButton = mouseButton
     else
@@ -556,31 +567,51 @@ function Update()
 
         if (InHitbox(mouseX,mouseY, 130 + 50*6,90,40,40))
         {
-alert(`Sapling v3.0
-============
+let content = (
+`<h1>Sapling v3.1</h1>
+<br>
+Last updated May 13th, 2021
+<br>
+<br>
+Created by Zach B (groverburger) for making syntax trees in Jorge Hankamer's Syntax 1 class, UCSC Fall 2020<br>
+<br>
+Please leave your feedback <a href=https://forms.gle/MDyZWf3bP4wh5fPF6>on this google form</a>!
+<br>
+Check out the source code and change log <a href=https://github.com/groverburger/sapling>here</a>!
 
-By Zach Booth, December 2020
-Created for making syntax trees in Jorge Hankamer's Syntax 1 class, UCSC Fall 2020
+<h2>Basics</h2>
 
--- Basics --
+Click on a node to select it.<br>
+Type to edit text in a selected node.<br>
+Right click a node to open the node's options menu.<br>
+Click and drag to move the camera, scroll to zoom in and out.<br>
 
-Click on a node to select it.
-Type to edit text in a selected node.
-Right click a node to open the node's options menu.
-Click and drag to move the camera, scroll to zoom in and out.
+<h2>Hotkeys</h2>
 
--- Hotkeys --
+<ul>
+<li>CTRL+Z - Undo</li>
+<li>Shift+CTRL+Z - Redo</li>
+<li>CTRL+A - Adds a subnode beneath the selected node</li>
+<li>Delete - Deletes the currently selected node</li>
+<li>CTRL+Delete - Deletes all text in the currently selected node</li>
+<li>Arrow Keys - Move selection around between nodes</li>
+<li>Tab - Select the sibling to the right of the currently selected node</li>
+<li>Shift+Tab - Select the sibling to the left of the currently selected node</li>
+<li>Shift+Arrow Keys - Reorder the currently selected node</li>
+</ul>
 
-CTRL+Z - Undo
-Shift+CTRL+Z - Redo
-CTRL+A - Adds a subnode beneath the selected node
-Delete - Deletes the currently selected node
-CTRL+Delete - Deletes all text in the currently selected node
-Arrow Keys - Move selection around between nodes
-Tab - Select the sibling to the right of the currently selected node
-Shift+Tab - Select the sibling to the left of the currently selected node
-Shift+Arrow Keys - Reorder the currently selected node
-`)
+<button onclick="if (InformationDiv) InformationDiv.remove(); InformationDiv = undefined">Done</button>
+`
+)
+            let div = createDiv(content)
+            div.style("position", "fixed")
+            div.style("width", "400px")
+            div.style("background-color", "white")
+            div.style("padding", "24px")
+            div.style("font-family", "arial")
+            div.position(innerWidth/2 - 200, 32)
+            InformationDiv = div
+            ScreenRefresh()
         }
 
         /*
@@ -600,6 +631,12 @@ Shift+Arrow Keys - Reorder the currently selected node
         {
             ScreenRefresh()
         }
+    }
+
+    if ((InHitbox(mouseX,mouseY, 10,10,128,128) && (movedX || movedY))
+    || InHitbox(pmouseX,pmouseY, 10,10,128,128))
+    {
+        ScreenRefresh()
     }
 }
 
@@ -669,6 +706,18 @@ function Draw()
     image(TitleSprite, 120,30)
     //let rot = RefreshCount*Math.PI*0.1
     //arc(windowWidth-60,50, 30,30, rot,rot+Math.PI*1.5)
+
+    if (typeof InformationDiv != "undefined") return
+
+    if (InHitbox(mouseX,mouseY, 10,10,128,128)) {
+        let _text = "View source code and change log" 
+        noStroke()
+        fill(0,0,0, 200)
+        rect(mouseX,mouseY, textWidth(_text) + 80,32)
+        stroke("white")
+        fill("white")
+        text(_text, mouseX + 40,mouseY+22)
+    }
 
     for (let i=0; i<8; i++)
     {
