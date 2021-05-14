@@ -331,9 +331,17 @@ class TreeNode
             }
             if (keyCode == 40 && this.children.length > 0)
             {
+                let closest = undefined
+                let closeness = Infinity
+                for (const child of this.children) {
+                    let dist = Math.sqrt(Math.pow(this.x - child.x, 2) + Math.pow(this.y - child.y, 2))
+                    if (dist < closeness) {
+                        closeness = dist
+                        closest = child
+                    }
+                }
                 NextSelectionList[this.id] = null
-                let i = Math.floor(this.children.length/2)
-                NextSelectionList[this.children[i].id] = this.children[i]
+                NextSelectionList[closest.id] = closest
                 AttemptAddChange()
                 ScreenRefresh()
             }
@@ -402,28 +410,47 @@ class TreeNode
     {
         if (!SelectionList[this.id] || !this.parent) { return }
 
-        let myIndex = null
-        for (let i=0; i<this.parent.children.length; i++)
-        {
-            if (this.parent.children[i] === this)
-            {
-                myIndex = i
-            }
-        }
-
         AttemptAddChange()
 
-        let sibling = this.parent.children[myIndex+direction]
-        if (sibling && !sibling.dead)
-        {
-            NextSelectionList[this.id] = null
-            NextSelectionList[sibling.id] = sibling
-            ScreenRefresh()
-
-            return true
+        let bestv = Infinity
+        let bestn = undefined
+        const recursedown = (node, value) => {
+            if (value > 0) {
+                for (const child of node.children) {
+                    let get = recursedown(child, value-1)
+                    if (typeof get == "undefined") continue
+                    let diff = Math.abs(get.x - this.x)
+                    if (direction == 1) {
+                        if (get.x > this.x && diff < bestv) {
+                            bestv = diff
+                            bestn = get
+                        }
+                    } else {
+                        if (get.x < this.x && diff < bestv) {
+                            bestv = diff
+                            bestn = get
+                        }
+                    }
+                }
+            } else {
+                return node
+            }
+            return bestn
         }
 
-        return false
+        let parent = this.parent
+        let count = 1
+        while (parent) {
+            recursedown(parent, count)
+            parent = parent.parent
+            count += 1
+        }
+
+        if (!bestn) return false
+
+        NextSelectionList[this.id] = null
+        NextSelectionList[bestn.id] = bestn
+        ScreenRefresh()
     }
 
     paste(text)

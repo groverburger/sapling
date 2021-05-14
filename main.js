@@ -46,8 +46,9 @@ It's useful for putting indices on traces.
 <br>
 <h3>Other Things</h3>
 <ul>
-    <li>Info panel popup should no longer do weird things on Chrome or Safari</li>
-    <li>Clicking the Sapling icon takes you to the source code repository on Github</li>
+    <li>Info panel popup should no longer do weird things on Chrome or Safari.</li>
+    <li>Clicking the Sapling icon now takes you to the source code repository on Github.</li>
+    <li>Cursor movement with the arrow keys is now more intuitive.</li>
 </ul>
 <br>
 Please leave your feedback <a href=https://forms.gle/MDyZWf3bP4wh5fPF6>on this google form</a>!
