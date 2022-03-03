@@ -197,7 +197,7 @@ document.addEventListener("paste", function(event) {
     event.preventDefault()
 
     // get text representation of clipboard
-    let text = event.clipboardData.getData("text/plain");
+    let text = event.clipboardData.getData("text/utf8");
 
     for (const key in SelectionList)
     {
@@ -723,7 +723,7 @@ function Draw()
     if (typeof InformationDiv != "undefined") return
 
     if (InHitbox(mouseX,mouseY, 10,10,110,110)) {
-        let _text = "View source code and change log" 
+        let _text = "View source code and change log"
         noStroke()
         fill(0,0,0, 200)
         rect(mouseX,mouseY, textWidth(_text) + 80,32)

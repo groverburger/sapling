@@ -661,19 +661,26 @@ class TreeNode
         let subText = ""
         let mainText = ""
         let sub = false
+        let nl = ""
         let lastChar = ""
         for (let i=0; i<this.text.length; i++) {
             let char = this.text[i]
             if (sub) {
                 subText += char
             } else {
+                mainText += nl
                 mainText += char
+                nl =  ""
             }
-
+            if (char == "\\" && lastChar == "\\" && i < this.text.length-1) {
+                nl = '\n'
+                mainText = mainText.substring(0, mainText.length-2)
+            }
             if (char == "_" && lastChar == "_" && i < this.text.length-1) {
                 sub = true
                 mainText = mainText.substring(0, mainText.length-2)
             }
+
 
             lastChar = char
         }
