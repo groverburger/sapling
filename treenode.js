@@ -641,7 +641,7 @@ class TreeNode
         _textSize(SubFontSize)
         let w2 = _textWidth(subText)
         _textSize(FontSize)
-
+        // These values are guesses changed for centre aligned text -AM
         _text(mainText, dx-w1/10-w2/10, dy + 6)
         _textSize(SubFontSize)
         _text(subText, dx+w1/10-w2/10, dy + 10)
@@ -685,6 +685,9 @@ class TreeNode
 
             lastChar = char
         }
+        // Once we've constructed the text we split it into an array and
+        // then return the longest element of the array. This will determine
+        // the width to calculate the tree node
         let splittext = mainText.split('\n')
         longest = splittext.reduce((a, b) => a.length > b.length ? a : b, '')
 

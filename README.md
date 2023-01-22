@@ -4,4 +4,4 @@
 
 An easy to use tree editor for linguistics and the sciences that works in your browser.
 
-Check it out: https://groverburger.github.io/sapling
+Check it out: https://amunn.github.io/sapling
