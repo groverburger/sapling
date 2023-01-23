@@ -190,9 +190,10 @@ class TreeNode
 
     textWidth()
     {
-        let [mainText, subText] = this.getMainTextAndSubText()
+        let [mainText,subText,longest,numlines] = this.getMainTextAndSubText()
         textSize(FontSize)
-        let w1 = textWidth(mainText)
+        // console.log(longest)
+        let w1 = textWidth(longest)
         textSize(SubFontSize)
         let w2 = textWidth(subText)
         textSize(FontSize)
@@ -201,7 +202,10 @@ class TreeNode
 
     textHeight()
     {
-        return FontSize+6
+        let [mainText,subText,longest,numlines] = this.getMainTextAndSubText()
+        return (FontSize+6)
+        // Not clear wny just multiplying this by numlines doesn't work
+        // Box is too big at the top not big enough at the bottom
     }
 
     lineHeight()
@@ -632,18 +636,18 @@ class TreeNode
         if (this.color == "default" || this.color == "highlighter")
             _fill(0)
         _strokeWeight(1)
-        _textAlign(LEFT)
+        _textAlign(CENTER)
 
-        let [mainText, subText] = this.getMainTextAndSubText()
+        let [mainText, subText,longest,numlines] = this.getMainTextAndSubText()
         _textSize(FontSize)
-        let w1 = _textWidth(mainText)
+        let w1 = _textWidth(longest)
         _textSize(SubFontSize)
         let w2 = _textWidth(subText)
         _textSize(FontSize)
-
-        _text(mainText, dx-w1/2-w2/2, dy + 6)
+        // These values are guesses changed for centre aligned text -AM
+        _text(mainText, dx-w1/10-w2/10, dy + 6)
         _textSize(SubFontSize)
-        _text(subText, dx+w1/2-w2/2, dy + 10)
+        _text(subText, dx+w1/10-w2/10, dy + 10)
 
         let i = 0
         while (i < this.arrows.length)
@@ -661,15 +665,23 @@ class TreeNode
         let subText = ""
         let mainText = ""
         let sub = false
+        let nl = ""
         let lastChar = ""
+        let longest = ""
+        let numlines = 1
         for (let i=0; i<this.text.length; i++) {
             let char = this.text[i]
             if (sub) {
                 subText += char
             } else {
+                mainText += nl
                 mainText += char
+                nl =  ""
             }
-
+            if (char == "\\" && lastChar == "\\" && i < this.text.length-1) {
+                nl = '\n'
+                mainText = mainText.substring(0, mainText.length-2)
+            }
             if (char == "_" && lastChar == "_" && i < this.text.length-1) {
                 sub = true
                 mainText = mainText.substring(0, mainText.length-2)
@@ -677,8 +689,14 @@ class TreeNode
 
             lastChar = char
         }
+        // Once we've constructed the text we split it into an array and
+        // then return the longest element of the array. This will determine
+        // the width to calculate the tree node
+        let splittext = mainText.split('\n')
+        numlines = splittext.length
+        longest = splittext.reduce((a, b) => a.length > b.length ? a : b, '')
 
-        return [mainText, subText]
+        return [mainText, subText,longest, numlines]
     }
 
     takePicture()

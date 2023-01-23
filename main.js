@@ -38,12 +38,13 @@ function setup()
     if (treeBackup != null && treeBackup.version == undefined) {
 CreateInformationDiv(
 `<h1>Sapling has been updated!</h1>
-May 13th, 2021
+Jan 22, 2023 by Alan Munn
 <br>
 <h3>Subscript notation has been added!</h3>
 When you write two underscores in a row __ inside of a node, the text after it becomes a subscript!
 It's useful for putting indices on traces.
 <br>
+<h3>Linebreaks in node text. You can add a linebreak in a node by entering \\ as you type. It will break the node at that point. This is designed so that you can write terminal nodes correctly without a line separating the category and the word/morpheme.  E.g. for a verb node you would type V\\eat.
 <h3>Other Things</h3>
 <ul>
     <li>Info panel popup should no longer do weird things on Chrome or Safari.</li>
@@ -70,7 +71,7 @@ Please leave your feedback <a href=https://forms.gle/MDyZWf3bP4wh5fPF6>on this g
     FileInput.style("font-size", "0px")
     FileInput.style("opacity", "0")
 
-    const tipLink = createA("https://www.paypal.me/groverburger", "tip me!", "_blank")
+    const tipLink = createA("https://www.paypal.me/groverburger", "Tip the original author!", "_blank")
     tipLink.position(480,90)
     tipLink.size(40,40)
     tipLink.style("opacity", "0")
@@ -197,7 +198,7 @@ document.addEventListener("paste", function(event) {
     event.preventDefault()
 
     // get text representation of clipboard
-    let text = event.clipboardData.getData("text/plain");
+    let text = event.clipboardData.getData("text/utf8");
 
     for (const key in SelectionList)
     {
@@ -306,7 +307,7 @@ function keyPressed()
     }
 
     // backspace and enter
-    if (keyCode == 8 || keyCode == 13)
+    if (keyCode == 8  || keyCode == 13)
         return false
 
     // copying
@@ -594,7 +595,7 @@ function Update()
 CreateInformationDiv(
 `<h1>Sapling v3.1</h1>
 <br>
-Last updated May 13th, 2021
+Last updated Jan 22, 2023 by Alan Munn
 <br>
 <br>
 Created by Zach B (groverburger) for making syntax trees in Jorge Hankamer's Syntax 1 class, UCSC Fall 2020<br>
@@ -610,6 +611,7 @@ Type to edit text in a selected node.<br>
 Right click a node to open the node's options menu.<br>
 Click and drag to move the camera, scroll to zoom in and out.<br>
 Adding two underscores in a row __ in a node makes everything after it a subscript.<br>
+Adding two \\\\ in a row will add a linebreak to a node. This allows you to properly type terminal nodes without a branch between the node label and its word/morpheme. E.g. for a V node you would type V\\\\eat
 
 <h2>Hotkeys</h2>
 
@@ -723,7 +725,7 @@ function Draw()
     if (typeof InformationDiv != "undefined") return
 
     if (InHitbox(mouseX,mouseY, 10,10,110,110)) {
-        let _text = "View source code and change log" 
+        let _text = "View source code and change log"
         noStroke()
         fill(0,0,0, 200)
         rect(mouseX,mouseY, textWidth(_text) + 80,32)
