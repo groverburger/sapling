@@ -76,7 +76,7 @@ Please leave your feedback <a href=https://forms.gle/MDyZWf3bP4wh5fPF6>on this g
     tipLink.size(40,40)
     tipLink.style("opacity", "0")
 
-    const sourceLink = createA("https://github.com/amunn/sapling", "Github Repo", "_blank")
+    const sourceLink = createA("https://github.com/groverburger/sapling", "Github Repo", "_blank")
     sourceLink.position(10,10)
     sourceLink.size(110,110)
     sourceLink.style("opacity", "0")
@@ -602,7 +602,7 @@ Created by Zach B (groverburger) for making syntax trees in Jorge Hankamer's Syn
 <br>
 Please leave your feedback <a href=https://forms.gle/MDyZWf3bP4wh5fPF6>on this google form</a>!
 <br>
-Check out the source code and change log <a href=https://github.com/amunn/sapling>here</a>!
+Check out the source code and change log <a href=https://github.com/groverburger/sapling>here</a>!
 
 <h2>How to Use</h2>
 
