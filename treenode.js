@@ -190,7 +190,7 @@ class TreeNode
 
     textWidth()
     {
-        let [mainText,subText,longest] = this.getMainTextAndSubText()
+        let [mainText,subText,longest,numlines] = this.getMainTextAndSubText()
         textSize(FontSize)
         // console.log(longest)
         let w1 = textWidth(longest)
@@ -202,7 +202,10 @@ class TreeNode
 
     textHeight()
     {
-        return FontSize+6
+        let [mainText,subText,longest,numlines] = this.getMainTextAndSubText()
+        return (FontSize+6)
+        // Not clear wny just multiplying this by numlines doesn't work
+        // Box is too big at the top not big enough at the bottom
     }
 
     lineHeight()
@@ -635,7 +638,7 @@ class TreeNode
         _strokeWeight(1)
         _textAlign(CENTER)
 
-        let [mainText, subText,longest] = this.getMainTextAndSubText()
+        let [mainText, subText,longest,numlines] = this.getMainTextAndSubText()
         _textSize(FontSize)
         let w1 = _textWidth(longest)
         _textSize(SubFontSize)
@@ -665,6 +668,7 @@ class TreeNode
         let nl = ""
         let lastChar = ""
         let longest = ""
+        let numlines = 1
         for (let i=0; i<this.text.length; i++) {
             let char = this.text[i]
             if (sub) {
@@ -689,9 +693,10 @@ class TreeNode
         // then return the longest element of the array. This will determine
         // the width to calculate the tree node
         let splittext = mainText.split('\n')
+        numlines = splittext.length
         longest = splittext.reduce((a, b) => a.length > b.length ? a : b, '')
 
-        return [mainText, subText,longest]
+        return [mainText, subText,longest, numlines]
     }
 
     takePicture()
